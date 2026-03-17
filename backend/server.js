@@ -57,3 +57,12 @@ app.post("/api/chat", async (req, res) => {
 app.listen(5000, () => {
   console.log("✅ Krushiverse backend running on port 5000");
 });
+// Keep backend awake
+const https = require("https");
+setInterval(() => {
+  https.get("https://krushiverse-backend-pnw1.onrender.com/api/health", (res) => {
+    console.log("Keep alive ping sent");
+  }).on("error", (err) => {
+    console.log("Ping error:", err.message);
+  });
+}, 840000); // ping every 14 minutes
