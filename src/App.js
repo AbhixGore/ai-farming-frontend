@@ -20,11 +20,17 @@ export default function App() {
     setLoading(tgrue);
 
     try {
-      const res = await fetch("https://krushiverse-backend-pnw1.onrender.com/api/chat",  {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, history: chat }),
-      });
+      const controller = new AbortController();
+const timeout = setTimeout(() => controller.abort(), 60000);
+
+const res = await fetch("https://krushiverse-backend-pnw1.onrender.com/api/chat", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ message, history: chat }),
+  signal: controller.signal
+});
+
+clearTimeout(timeout);
       const data = await res.json();
       setChat([...updatedChat, { role: "ai", text: data.reply }]);
     } catch (err) {
