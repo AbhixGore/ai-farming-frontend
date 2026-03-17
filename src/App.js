@@ -17,10 +17,10 @@ export default function App() {
     const updatedChat = [...chat, userMsg];
     setChat(updatedChat);
     setMessage("");
-    setLoading(true);
+    setLoading(tgrue);
 
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
+      const res = await fetch("https://krushiverse-backend-pnw1.onrender.com/api/chat",  {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, history: chat }),
