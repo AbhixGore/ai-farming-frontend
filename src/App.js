@@ -83,21 +83,58 @@ clearTimeout(timeout);
         gap: 10
       }}>
 
-        {chat.length === 0 && (
-          <div style={{
-            textAlign: "center",
-            color: "#888",
-            marginTop: 60
-          }}>
-            <div style={{ fontSize: 48 }}>🌱</div>
-            <p style={{ fontSize: 16, marginTop: 8 }}>
-              Namaste! Ask me anything about farming.
-            </p>
-            <p style={{ fontSize: 13, color: "#aaa" }}>
-              Crops • Soil • Fertilizers • Pests • Irrigation
-            </p>
-          </div>
-        )}
+      {chat.length === 0 && (
+  <div style={{
+    textAlign: "center",
+    color: "#888",
+    marginTop: 40,
+    padding: "0 16px"
+  }}>
+    <div style={{ fontSize: 48 }}>🌱</div>
+    <p style={{ fontSize: 16, marginTop: 8, color: "#555" }}>
+      Namaste! Ask me anything about farming.
+    </p>
+    <p style={{ fontSize: 13, color: "#aaa", marginBottom: 24 }}>
+      Crops • Soil • Fertilizers • Pests • Irrigation
+    </p>
+
+    {/* Suggested questions */}
+    <div style={{ textAlign: "left" }}>
+      <p style={{ fontSize: 13, color: "#aaa", marginBottom: 10, textAlign: "center" }}>
+        Try asking:
+      </p>
+      {[
+        "🌾 सोयाबीन काळ्या मातीत कसे पिकवायचे?",
+        "🐛 कपाशीवरील कीड नियंत्रण कसे करावे?",
+        "💧 ठिबक सिंचनाचे फायदे काय आहेत?",
+        "🌱 गव्हासाठी सर्वोत्तम खत कोणते?",
+        "☀️ मराठवाड्यात कोणते पीक चांगले येते?",
+        "🧪 जमिनीची माती परीक्षा कशी करावी?"
+      ].map((question, index) => (
+        <button
+          key={index}
+          onClick={() => setMessage(question.slice(2))}
+          style={{
+            display: "block",
+            width: "100%",
+            padding: "10px 14px",
+            marginBottom: 8,
+            background: "white",
+            border: "1px solid #e0e0e0",
+            borderRadius: 12,
+            fontSize: 14,
+            color: "#333",
+            cursor: "pointer",
+            textAlign: "left",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+          }}
+        >
+          {question}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
 
         {chat.map((msg, index) => (
           <div key={index} style={{
