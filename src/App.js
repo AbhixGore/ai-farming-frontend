@@ -24,6 +24,7 @@ export default function App() {
 const timeout = setTimeout(() => controller.abort(), 60000);
 
 const res = await fetch("https://ai-farming-frontend-production.up.railway.app/api/chat", {
+  method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ message, history: chat }),
   signal: controller.signal
