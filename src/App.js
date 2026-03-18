@@ -10,10 +10,11 @@ export default function App() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
 
-  const sendMessage = async () => {
-    if (!message.trim() || loading) return;
+  const sendMessage = async (text) => {
+    const msgText = text || message;
+    if (!msgText.trim() || loading) return;
 
-    const userMsg = { role: "user", text: message };
+    const userMsg = { role: "user", text: msgText };
     const updatedChat = [...chat, userMsg];
     setChat(updatedChat);
     setMessage("");
@@ -21,22 +22,22 @@ export default function App() {
 
     try {
       const controller = new AbortController();
-const timeout = setTimeout(() => controller.abort(), 60000);
+      const timeout = setTimeout(() => controller.abort(), 60000);
 
-const res = await fetch("https://ai-farming-frontend-production.up.railway.app/api/chat", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ message, history: chat }),
-  signal: controller.signal
-});
+      const res = await fetch("https://ai-farming-frontend-production.up.railway.app/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msgText, history: chat }),
+        signal: controller.signal
+      });
 
-clearTimeout(timeout);
+      clearTimeout(timeout);
       const data = await res.json();
       setChat([...updatedChat, { role: "ai", text: data.reply }]);
     } catch (err) {
       setChat([...updatedChat, {
         role: "ai",
-        text: "Connection error. Is the backend running?"
+        text: "⏳ कनेक्शन एरर. पुन्हा प्रयत्न करा."
       }]);
     }
     setLoading(false);
@@ -46,6 +47,15 @@ clearTimeout(timeout);
     if (e.key === "Enter") sendMessage();
   };
 
+  const suggestedQuestions = [
+    { emoji: "🌾", text: "सोयाबीन काळ्या मातीत कसे पिकवायचे?" },
+    { emoji: "🐛", text: "कपाशीवरील कीड नियंत्रण कसे करावे?" },
+    { emoji: "💧", text: "ठिबक सिंचनाचे फायदे काय आहेत?" },
+    { emoji: "🌱", text: "गव्हासाठी सर्वोत्तम खत कोणते?" },
+    { emoji: "☀️", text: "मराठवाड्यात कोणते पीक चांगले येते?" },
+    { emoji: "🧪", text: "जमिनीची माती परीक्षा कशी करावी?" },
+  ];
+
   return (
     <div style={{
       display: "flex",
@@ -53,105 +63,163 @@ clearTimeout(timeout);
       height: "100vh",
       maxWidth: 640,
       margin: "0 auto",
-      fontFamily: "Arial, sans-serif",
-      background: "#f5f5f5"
+      fontFamily: "'Segoe UI', Arial, sans-serif",
+      background: "#f0f4f0"
     }}>
 
       {/* Header */}
       <div style={{
-        background: "#2e7d32",
+        background: "linear-gradient(135deg, #1b5e20, #2e7d32)",
         color: "white",
-        padding: "16px 20px",
+        padding: "14px 20px",
         display: "flex",
         alignItems: "center",
-        gap: 10
+        gap: 12,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
       }}>
-        <span style={{ fontSize: 28 }}>🌾</span>
+        <div style={{
+          background: "rgba(255,255,255,0.2)",
+          borderRadius: "50%",
+          width: 42,
+          height: 42,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 22
+        }}>🌾</div>
         <div>
-          <div style={{ fontWeight: "bold", fontSize: 18 }}>Krushiverse</div>
-          <div style={{ fontSize: 12, opacity: 0.85 }}>AI Farming Assistant</div>
+          <div style={{ fontWeight: "bold", fontSize: 18, letterSpacing: 0.5 }}>
+            Krushiverse
+          </div>
+          <div style={{ fontSize: 11, opacity: 0.85 }}>
+            AI शेती सहाय्यक • Online
+          </div>
         </div>
+        {chat.length > 0 && (
+          <button
+            onClick={() => setChat([])}
+            style={{
+              marginLeft: "auto",
+              background: "rgba(255,255,255,0.2)",
+              border: "none",
+              color: "white",
+              padding: "6px 12px",
+              borderRadius: 20,
+              fontSize: 12,
+              cursor: "pointer"
+            }}
+          >
+            नवीन चॅट
+          </button>
+        )}
       </div>
 
-      {/* Chat messages */}
+      {/* Chat area */}
       <div style={{
         flex: 1,
         overflowY: "auto",
-        padding: 16,
+        padding: "16px 12px",
         display: "flex",
         flexDirection: "column",
-        gap: 10
+        gap: 12
       }}>
 
-      {chat.length === 0 && (
-  <div style={{
-    textAlign: "center",
-    color: "#888",
-    marginTop: 40,
-    padding: "0 16px"
-  }}>
-    <div style={{ fontSize: 48 }}>🌱</div>
-    <p style={{ fontSize: 16, marginTop: 8, color: "#555" }}>
-      Namaste! Ask me anything about farming.
-    </p>
-    <p style={{ fontSize: 13, color: "#aaa", marginBottom: 24 }}>
-      Crops • Soil • Fertilizers • Pests • Irrigation
-    </p>
+        {/* Welcome screen */}
+        {chat.length === 0 && (
+          <div style={{ padding: "8px 4px" }}>
+            <div style={{
+              textAlign: "center",
+              padding: "24px 16px 20px",
+              background: "white",
+              borderRadius: 16,
+              marginBottom: 16,
+              boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
+            }}>
+              <div style={{ fontSize: 52 }}>🌱</div>
+              <h2 style={{
+                margin: "12px 0 6px",
+                color: "#1b5e20",
+                fontSize: 18
+              }}>
+                नमस्ते! मी Krushiverse
+              </h2>
+              <p style={{ color: "#666", fontSize: 14, margin: 0 }}>
+                शेतीविषयक कोणताही प्रश्न विचारा
+              </p>
+            </div>
 
-    {/* Suggested questions */}
-    <div style={{ textAlign: "left" }}>
-      <p style={{ fontSize: 13, color: "#aaa", marginBottom: 10, textAlign: "center" }}>
-        Try asking:
-      </p>
-      {[
-        "🌾 सोयाबीन काळ्या मातीत कसे पिकवायचे?",
-        "🐛 कपाशीवरील कीड नियंत्रण कसे करावे?",
-        "💧 ठिबक सिंचनाचे फायदे काय आहेत?",
-        "🌱 गव्हासाठी सर्वोत्तम खत कोणते?",
-        "☀️ मराठवाड्यात कोणते पीक चांगले येते?",
-        "🧪 जमिनीची माती परीक्षा कशी करावी?"
-      ].map((question, index) => (
-        <button
-          key={index}
-          onClick={() => setMessage(question.slice(2))}
-          style={{
-            display: "block",
-            width: "100%",
-            padding: "10px 14px",
-            marginBottom: 8,
-            background: "white",
-            border: "1px solid #e0e0e0",
-            borderRadius: 12,
-            fontSize: 14,
-            color: "#333",
-            cursor: "pointer",
-            textAlign: "left",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-          }}
-        >
-          {question}
-        </button>
-      ))}
-    </div>
-  </div>
-)}
+            <p style={{
+              fontSize: 13,
+              color: "#888",
+              marginBottom: 10,
+              paddingLeft: 4
+            }}>
+              💬 असे विचारा:
+            </p>
 
+            {suggestedQuestions.map((q, index) => (
+              <button
+                key={index}
+                onClick={() => sendMessage(q.text)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  width: "100%",
+                  padding: "12px 14px",
+                  marginBottom: 8,
+                  background: "white",
+                  border: "1px solid #e8f5e9",
+                  borderRadius: 12,
+                  fontSize: 14,
+                  color: "#333",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                  transition: "all 0.2s"
+                }}
+              >
+                <span style={{ fontSize: 20 }}>{q.emoji}</span>
+                <span>{q.text}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Messages */}
         {chat.map((msg, index) => (
           <div key={index} style={{
             display: "flex",
-            justifyContent: msg.role === "user" ? "flex-end" : "flex-start"
+            justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+            alignItems: "flex-end",
+            gap: 8
           }}>
+            {msg.role === "ai" && (
+              <div style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                background: "#2e7d32",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 16,
+                flexShrink: 0
+              }}>🌾</div>
+            )}
             <div style={{
-              maxWidth: "78%",
+              maxWidth: "75%",
               padding: "10px 14px",
               borderRadius: msg.role === "user"
                 ? "18px 18px 4px 18px"
                 : "18px 18px 18px 4px",
-              background: msg.role === "user" ? "#2e7d32" : "white",
+              background: msg.role === "user"
+                ? "linear-gradient(135deg, #2e7d32, #388e3c)"
+                : "white",
               color: msg.role === "user" ? "white" : "#222",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
               fontSize: 14,
-              lineHeight: 1.5,
+              lineHeight: 1.6,
               whiteSpace: "pre-wrap"
             }}>
               {msg.text}
@@ -159,17 +227,32 @@ clearTimeout(timeout);
           </div>
         ))}
 
+        {/* Thinking indicator */}
         {loading && (
-          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+          <div style={{
+            display: "flex",
+            alignItems: "flex-end",
+            gap: 8
+          }}>
             <div style={{
-              padding: "10px 16px",
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              background: "#2e7d32",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16
+            }}>🌾</div>
+            <div style={{
+              padding: "12px 16px",
               background: "white",
               borderRadius: "18px 18px 18px 4px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
               color: "#888",
               fontSize: 14
             }}>
-              Thinking... 🌱
+              विचार करत आहे... 🌱
             </div>
           </div>
         )}
@@ -179,43 +262,51 @@ clearTimeout(timeout);
 
       {/* Input bar */}
       <div style={{
-        padding: 12,
+        padding: "10px 12px",
         background: "white",
         borderTop: "1px solid #e0e0e0",
         display: "flex",
-        gap: 8
+        gap: 8,
+        alignItems: "center",
+        boxShadow: "0 -2px 8px rgba(0,0,0,0.05)"
       }}>
         <input
           type="text"
-          placeholder="Ask a farming question..."
+          placeholder="शेतीविषयक प्रश्न विचारा..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={loading}
           style={{
             flex: 1,
-            padding: "10px 14px",
+            padding: "10px 16px",
             borderRadius: 24,
-            border: "1px solid #ccc",
+            border: "1.5px solid #c8e6c9",
             fontSize: 14,
-            outline: "none"
+            outline: "none",
+            background: loading ? "#f9f9f9" : "white",
+            color: "#333"
           }}
         />
         <button
-          onClick={sendMessage}
-          disabled={loading}
+          onClick={() => sendMessage()}
+          disabled={loading || !message.trim()}
           style={{
-            padding: "10px 20px",
-            background: loading ? "#aaa" : "#2e7d32",
+            width: 44,
+            height: 44,
+            background: loading || !message.trim() ? "#ccc" : "#2e7d32",
             color: "white",
             border: "none",
-            borderRadius: 24,
-            fontSize: 14,
-            cursor: loading ? "not-allowed" : "pointer",
-            fontWeight: "bold"
+            borderRadius: "50%",
+            fontSize: 20,
+            cursor: loading || !message.trim() ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0
           }}
         >
-          {loading ? "..." : "Send"}
+          {loading ? "⏳" : "➤"}
         </button>
       </div>
     </div>
