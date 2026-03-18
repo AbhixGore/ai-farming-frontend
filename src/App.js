@@ -23,8 +23,7 @@ export default function App() {
       const controller = new AbortController();
 const timeout = setTimeout(() => controller.abort(), 60000);
 
-const res = await fetch("https://krushiverse-backend-pnw1.onrender.com/api/chat", {
-  method: "POST",
+const res = await fetch("https://ai-farming-frontend-production.up.railway.app/api/chat", {
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ message, history: chat }),
   signal: controller.signal
