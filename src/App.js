@@ -17,7 +17,7 @@ export default function App() {
     const updatedChat = [...chat, userMsg];
     setChat(updatedChat);
     setMessage("");
-    setLoading(tgrue);
+    setLoading(true);
 
     try {
       const controller = new AbortController();
