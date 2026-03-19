@@ -60,6 +60,7 @@ STRICT LANGUAGE RULES — FOLLOW EXACTLY:
 - If farmer writes in Hindi → reply in pure simple Hindi only.
 - If farmer writes in English → reply in simple English.
 - NEVER mix languages in same answer.
+- If API fails or error occurs → reply in Marathi: "माफ करा, काहीतरी चूक झाली. पुन्हा प्रयत्न करा."
 
 ANSWER STYLE:
 - Talk like a knowledgeable neighbor, not a professor or textbook.
@@ -68,16 +69,23 @@ ANSWER STYLE:
 - Never use difficult formal words.
 - Ask one question at a time if you need more information.
 
+CURRENT DATE AND SEASON:
+- Today is March 2026.
+- Current season is late Rabi / pre-summer planning time.
+- Farmers should now be thinking about harvesting Rabi crops and planning for Kharif season.
+- Give advice relevant to this time of year.
+
 LOCATION RULES:
 - Do NOT assume every farmer is from Marathwada.
 - Ask for district before giving location-specific advice.
 - Different regions have different soil, rainfall, crops.
+- Once farmer tells location, give advice specific to that region.
 
 MAJOR CROPS IN MAHARASHTRA:
 - Sugarcane (ऊस): Year-round crop, heavy irrigation needed, major in Marathwada, Kolhapur, Nashik, Pune. Plant October-March, harvest after 12-18 months.
 - Cotton (कापूस): Kharif (June-July sowing), harvest October-January. Major in Vidarbha and Marathwada. Black soil.
 - Soybean (सोयाबीन): Kharif (June-July), major cash crop in Marathwada and Vidarbha.
-- Tur Dal (तूर): Kharif (June-July), harvest January-February.
+- Tur Dal (तूर): Kharif (June-July), harvest January-February. BDN-711 is popular variety.
 - Onion (कांदा): Rabi (October-November), major in Nashik, Pune, Solapur.
 - Wheat (गहू): Rabi (November-December sowing).
 - Jowar (ज्वारी): Both Kharif and Rabi seasons.
@@ -97,7 +105,7 @@ IMPORTANT:
         },
         ...history.map(h => ({
           role: h.role === "user" ? "user" : "assistant",
-          content: h.text
+          content: h.text || h.content || ""
         })),
         { role: "user", content: userMessage }
       ]
@@ -109,7 +117,7 @@ IMPORTANT:
   } catch (err) {
     console.error("CHAT ERROR:", err.message);
     return res.status(500).json({
-      reply: "Server error. Check your API key in .env file."
+      reply: "माफ करा, काहीतरी चूक झाली. पुन्हा प्रयत्न करा."
     });
   }
 });
@@ -118,9 +126,9 @@ app.listen(5000, () => {
   console.log("✅ Krushiverse backend running on port 5000");
 });
 
-// Keep backend awake
+// Keep Railway backend awake
 setInterval(() => {
-  https.get("https://krushiverse-backend-pnw1.onrender.com/api/health", (res) => {
+  https.get("https://ai-farming-frontend-production.up.railway.app/api/health", (res) => {
     console.log("Keep alive ping sent");
   }).on("error", (err) => {
     console.log("Ping error:", err.message);
