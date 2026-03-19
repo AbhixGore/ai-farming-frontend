@@ -16,10 +16,34 @@ export default function App() {
   const speakText = (text) => {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "mr-IN";
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
+
+    const cleanText = text
+      .replace(/[*#•\-]/g, "")
+      .replace(/\d+\./g, "")
+      .replace(/\n+/g, ". ")
+      .replace(/[:]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+
+    const voices = window.speechSynthesis.getVoices();
+    const marathiVoice = voices.find(v => v.lang === "mr-IN");
+    const hindiVoice = voices.find(v => v.lang === "hi-IN");
+
+    if (marathiVoice) {
+      utterance.voice = marathiVoice;
+      utterance.lang = "mr-IN";
+    } else if (hindiVoice) {
+      utterance.voice = hindiVoice;
+      utterance.lang = "hi-IN";
+    } else {
+      utterance.lang = "mr-IN";
+    }
+
+    utterance.rate = 0.85;
+    utterance.pitch = 1.1;
+    utterance.volume = 1;
     utterance.onstart = () => setSpeaking(true);
     utterance.onend = () => setSpeaking(false);
     window.speechSynthesis.speak(utterance);
