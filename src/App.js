@@ -6,6 +6,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [accumulatedText, setAccumulatedText] = useState("");
   const bottomRef = useRef(null);
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef("");
@@ -20,13 +21,11 @@ export default function App() {
     } else {
       window.history.pushState({ chat: false }, "");
     }
-
     const handleBackButton = () => {
       setChat([]);
       window.speechSynthesis.cancel();
       setSpeaking(false);
     };
-
     window.addEventListener("popstate", handleBackButton);
     return () => window.removeEventListener("popstate", handleBackButton);
   }, [chat]);
@@ -34,7 +33,6 @@ export default function App() {
   const speakText = (text) => {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-
     const cleanText = text
       .replace(/[*#•\-]/g, "")
       .replace(/\d+\./g, "")
@@ -42,12 +40,10 @@ export default function App() {
       .replace(/[:]/g, "")
       .replace(/\s+/g, " ")
       .trim();
-
     const utterance = new SpeechSynthesisUtterance(cleanText);
     const voices = window.speechSynthesis.getVoices();
     const marathiVoice = voices.find(v => v.lang === "mr-IN");
     const hindiVoice = voices.find(v => v.lang === "hi-IN");
-
     if (marathiVoice) {
       utterance.voice = marathiVoice;
       utterance.lang = "mr-IN";
@@ -57,7 +53,6 @@ export default function App() {
     } else {
       utterance.lang = "mr-IN";
     }
-
     utterance.rate = 0.85;
     utterance.pitch = 1.1;
     utterance.volume = 1;
@@ -78,11 +73,10 @@ export default function App() {
       return;
     }
 
-    // Keep whatever is already in the input box
-    const existingText = message.trim();
-    if (existingText) {
-      finalTranscriptRef.current = existingText + " ";
-    }
+    // KEY FIX: sync both ref and state with current input box text
+    const currentText = message.trim() ? message.trim() + " " : "";
+    finalTranscriptRef.current = currentText;
+    setAccumulatedText(currentText);
 
     const recognition = new SpeechRecognition();
     recognition.lang = "mr-IN";
@@ -92,16 +86,24 @@ export default function App() {
     recognition.onstart = () => setListening(true);
 
     recognition.onresult = (event) => {
+      let newFinal = "";
       let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscriptRef.current += transcript + " ";
+          newFinal += transcript + " ";
         } else {
           interim += transcript;
         }
       }
-      setMessage(finalTranscriptRef.current + interim);
+      if (newFinal) {
+        const updated = finalTranscriptRef.current + newFinal;
+        finalTranscriptRef.current = updated;
+        setAccumulatedText(updated);
+        setMessage(updated.trim());
+      } else {
+        setMessage(finalTranscriptRef.current + interim);
+      }
     };
 
     recognition.onerror = () => {
@@ -135,32 +137,30 @@ export default function App() {
       recognitionRef.current = null;
     }
     setListening(false);
+    finalTranscriptRef.current = "";
+    setAccumulatedText("");
 
     const userMsg = { role: "user", text: msgText };
     const updatedChat = [...chat, userMsg];
     setChat(updatedChat);
     setMessage("");
-    finalTranscriptRef.current = "";
     setLoading(true);
     window.speechSynthesis.cancel();
 
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 60000);
-
       const res = await fetch("https://ai-farming-frontend-production.up.railway.app/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: msgText, history: chat }),
         signal: controller.signal
       });
-
       clearTimeout(timeout);
       const data = await res.json();
       const aiReply = data.reply;
       setChat([...updatedChat, { role: "ai", text: aiReply, feedback: null }]);
       speakText(aiReply);
-
     } catch (err) {
       setChat([...updatedChat, {
         role: "ai",
@@ -290,11 +290,9 @@ export default function App() {
                 🎤 बोलून विचारा किंवा टाइप करा
               </p>
             </div>
-
             <p style={{ fontSize: 13, color: "#888", marginBottom: 10, paddingLeft: 4 }}>
               💬 असे विचारा:
             </p>
-
             {suggestedQuestions.map((q, index) => (
               <button key={index} onClick={() => sendMessage(q.text)} style={{
                 display: "flex",
@@ -358,7 +356,6 @@ export default function App() {
                 {msg.text}
               </div>
             </div>
-
             {msg.role === "ai" && (
               <div style={{ display: "flex", gap: 6, marginLeft: 40, marginTop: 2, flexWrap: "wrap" }}>
                 <button onClick={() => speakText(msg.text)} style={{
@@ -408,7 +405,6 @@ export default function App() {
             </div>
           </div>
         )}
-
         <div ref={bottomRef} />
       </div>
 
