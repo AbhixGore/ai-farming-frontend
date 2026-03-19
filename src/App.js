@@ -17,19 +17,21 @@ export default function App() {
   useEffect(() => {
     if (chat.length > 0) {
       window.history.pushState({ chat: true }, "");
+    } else {
+      window.history.pushState({ chat: false }, "");
     }
 
     const handleBackButton = () => {
-      if (chat.length > 0) {
-        setChat([]);
-        window.speechSynthesis.cancel();
-        setSpeaking(false);
-      }
+      setChat([]);
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
     };
 
     window.addEventListener("popstate", handleBackButton);
     return () => window.removeEventListener("popstate", handleBackButton);
   }, [chat]);
+
+    
 
   const speakText = (text) => {
     if (!window.speechSynthesis) return;
