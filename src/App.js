@@ -44,7 +44,6 @@ export default function App() {
       .trim();
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
-
     const voices = window.speechSynthesis.getVoices();
     const marathiVoice = voices.find(v => v.lang === "mr-IN");
     const hindiVoice = voices.find(v => v.lang === "hi-IN");
@@ -79,6 +78,12 @@ export default function App() {
       return;
     }
 
+    // Keep whatever is already in the input box
+    const existingText = message.trim();
+    if (existingText) {
+      finalTranscriptRef.current = existingText + " ";
+    }
+
     const recognition = new SpeechRecognition();
     recognition.lang = "mr-IN";
     recognition.continuous = false;
@@ -101,13 +106,12 @@ export default function App() {
 
     recognition.onerror = () => {
       setListening(false);
+      setMessage(finalTranscriptRef.current.trim());
     };
 
     recognition.onend = () => {
       setListening(false);
-      if (finalTranscriptRef.current.trim()) {
-        setMessage(finalTranscriptRef.current.trim());
-      }
+      setMessage(finalTranscriptRef.current.trim());
     };
 
     recognitionRef.current = recognition;
