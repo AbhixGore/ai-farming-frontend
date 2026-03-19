@@ -33,11 +33,12 @@ export default function App() {
 
       clearTimeout(timeout);
       const data = await res.json();
-      setChat([...updatedChat, { role: "ai", text: data.reply }]);
+      setChat([...updatedChat, { role: "ai", text: data.reply, feedback: null }]);
     } catch (err) {
       setChat([...updatedChat, {
         role: "ai",
-        text: "⏳ कनेक्शन एरर. पुन्हा प्रयत्न करा."
+        text: "⏳ कनेक्शन एरर. पुन्हा प्रयत्न करा.",
+        feedback: null
       }]);
     }
     setLoading(false);
@@ -45,6 +46,12 @@ export default function App() {
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") sendMessage();
+  };
+
+  const handleFeedback = (index, type) => {
+    const updated = [...chat];
+    updated[index] = { ...updated[index], feedback: type };
+    setChat(updated);
   };
 
   const suggestedQuestions = [
@@ -175,8 +182,7 @@ export default function App() {
                   color: "#333",
                   cursor: "pointer",
                   textAlign: "left",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-                  transition: "all 0.2s"
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
                 }}
               >
                 <span style={{ fontSize: 20 }}>{q.emoji}</span>
@@ -190,40 +196,94 @@ export default function App() {
         {chat.map((msg, index) => (
           <div key={index} style={{
             display: "flex",
-            justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-            alignItems: "flex-end",
-            gap: 8
+            flexDirection: "column",
+            alignItems: msg.role === "user" ? "flex-end" : "flex-start",
+            gap: 4
           }}>
+            <div style={{
+              display: "flex",
+              justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+              alignItems: "flex-end",
+              gap: 8
+            }}>
+              {msg.role === "ai" && (
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  background: "#2e7d32",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 16,
+                  flexShrink: 0
+                }}>🌾</div>
+              )}
+              <div style={{
+                maxWidth: "75%",
+                padding: "10px 14px",
+                borderRadius: msg.role === "user"
+                  ? "18px 18px 4px 18px"
+                  : "18px 18px 18px 4px",
+                background: msg.role === "user"
+                  ? "linear-gradient(135deg, #2e7d32, #388e3c)"
+                  : "white",
+                color: msg.role === "user" ? "white" : "#222",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+                fontSize: 14,
+                lineHeight: 1.6,
+                whiteSpace: "pre-wrap"
+              }}>
+                {msg.text}
+              </div>
+            </div>
+
+            {/* Feedback buttons */}
             {msg.role === "ai" && (
               <div style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: "#2e7d32",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 16,
-                flexShrink: 0
-              }}>🌾</div>
+                gap: 6,
+                marginLeft: 40,
+                marginTop: 2
+              }}>
+                {msg.feedback === "up" ? (
+                  <span style={{ fontSize: 13, color: "#2e7d32" }}>✅ धन्यवाद!</span>
+                ) : msg.feedback === "down" ? (
+                  <span style={{ fontSize: 13, color: "#c62828" }}>❌ नोंदवले</span>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleFeedback(index, "up")}
+                      style={{
+                        background: "white",
+                        border: "1px solid #e0e0e0",
+                        borderRadius: 20,
+                        padding: "3px 10px",
+                        fontSize: 13,
+                        cursor: "pointer",
+                        color: "#555"
+                      }}
+                    >
+                      👍 बरोबर
+                    </button>
+                    <button
+                      onClick={() => handleFeedback(index, "down")}
+                      style={{
+                        background: "white",
+                        border: "1px solid #e0e0e0",
+                        borderRadius: 20,
+                        padding: "3px 10px",
+                        fontSize: 13,
+                        cursor: "pointer",
+                        color: "#555"
+                      }}
+                    >
+                      👎 चुकीचे
+                    </button>
+                  </>
+                )}
+              </div>
             )}
-            <div style={{
-              maxWidth: "75%",
-              padding: "10px 14px",
-              borderRadius: msg.role === "user"
-                ? "18px 18px 4px 18px"
-                : "18px 18px 18px 4px",
-              background: msg.role === "user"
-                ? "linear-gradient(135deg, #2e7d32, #388e3c)"
-                : "white",
-              color: msg.role === "user" ? "white" : "#222",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-              fontSize: 14,
-              lineHeight: 1.6,
-              whiteSpace: "pre-wrap"
-            }}>
-              {msg.text}
-            </div>
           </div>
         ))}
 
