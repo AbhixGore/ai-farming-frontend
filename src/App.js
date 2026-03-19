@@ -8,12 +8,12 @@ export default function App() {
   const [speaking, setSpeaking] = useState(false);
   const bottomRef = useRef(null);
   const recognitionRef = useRef(null);
+  const finalTranscriptRef = useRef("");
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
 
-  // Back button fix
   useEffect(() => {
     if (chat.length > 0) {
       window.history.pushState({ chat: true }, "");
@@ -30,8 +30,6 @@ export default function App() {
     window.addEventListener("popstate", handleBackButton);
     return () => window.removeEventListener("popstate", handleBackButton);
   }, [chat]);
-
-    
 
   const speakText = (text) => {
     if (!window.speechSynthesis) return;
@@ -80,41 +78,53 @@ export default function App() {
       alert("तुमचा browser voice support करत नाही. Chrome वापरा.");
       return;
     }
+
+    finalTranscriptRef.current = "";
+    setMessage("");
+
     const recognition = new SpeechRecognition();
     recognition.lang = "mr-IN";
     recognition.continuous = true;
     recognition.interimResults = true;
+
     recognition.onstart = () => setListening(true);
+
     recognition.onresult = (event) => {
-      let finalTranscript = "";
-      let interimTranscript = "";
-      
+      let interim = "";
+
       for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
+          finalTranscriptRef.current += transcript + " ";
         } else {
-          interimTranscript += event.results[i][0].transcript;
+          interim += transcript;
         }
       }
-      
-      // Show interim results while speaking
-      if (interimTranscript) {
-        setMessage(interimTranscript);
-      }
-      
-      // Set final result when farmer pauses
-      if (finalTranscript) {
-        setMessage(prev => prev + finalTranscript);
+
+      setMessage(finalTranscriptRef.current + interim);
+    };
+
+    recognition.onerror = (e) => {
+      if (e.error !== "no-speech") {
+        setListening(false);
       }
     };
-    recognition.onerror = () => setListening(false);
-    recognition.onend = () => setListening(false);
+
+    recognition.onend = () => {
+      if (finalTranscriptRef.current.trim()) {
+        setMessage(finalTranscriptRef.current.trim());
+      }
+      setListening(false);
+    };
+
     recognitionRef.current = recognition;
     recognition.start();
   };
 
   const stopListening = () => {
-    if (recognitionRef.current) recognitionRef.current.stop();
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
     setListening(false);
   };
 
@@ -122,10 +132,17 @@ export default function App() {
     const msgText = text || message;
     if (!msgText.trim() || loading) return;
 
+    // Stop listening if active
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setListening(false);
+
     const userMsg = { role: "user", text: msgText };
     const updatedChat = [...chat, userMsg];
     setChat(updatedChat);
     setMessage("");
+    finalTranscriptRef.current = "";
     setLoading(true);
     window.speechSynthesis.cancel();
 
