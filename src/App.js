@@ -79,10 +79,8 @@ export default function App() {
       return;
     }
 
-    finalTranscriptRef.current = "";
-    setMessage("");
-
     const recognition = new SpeechRecognition();
+
     recognition.lang = "mr-IN";
     recognition.continuous = true;
     recognition.interimResults = true;
