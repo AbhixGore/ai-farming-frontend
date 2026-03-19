@@ -80,9 +80,8 @@ export default function App() {
     }
 
     const recognition = new SpeechRecognition();
-
     recognition.lang = "mr-IN";
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = true;
 
     recognition.onstart = () => setListening(true);
@@ -100,19 +99,14 @@ export default function App() {
       setMessage(finalTranscriptRef.current + interim);
     };
 
-    recognition.onerror = (e) => {
-      if (e.error === "no-speech" || e.error === "network") {
-        // Auto restart on no-speech
-        try { recognition.start(); } catch(err) {}
-      } else {
-        setListening(false);
-      }
+    recognition.onerror = () => {
+      setListening(false);
     };
 
     recognition.onend = () => {
-      // Auto restart if still in listening mode
-      if (recognitionRef.current === recognition) {
-        try { recognition.start(); } catch(err) { setListening(false); }
+      setListening(false);
+      if (finalTranscriptRef.current.trim()) {
+        setMessage(finalTranscriptRef.current.trim());
       }
     };
 
@@ -123,6 +117,7 @@ export default function App() {
   const stopListening = () => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
+      recognitionRef.current = null;
     }
     setListening(false);
   };
@@ -131,9 +126,9 @@ export default function App() {
     const msgText = text || message;
     if (!msgText.trim() || loading) return;
 
-    // Stop listening if active
     if (recognitionRef.current) {
       recognitionRef.current.stop();
+      recognitionRef.current = null;
     }
     setListening(false);
 
