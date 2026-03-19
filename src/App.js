@@ -4,11 +4,58 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
   const bottomRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
+
+  const speakText = (text) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "mr-IN";
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.onstart = () => setSpeaking(true);
+    utterance.onend = () => setSpeaking(false);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    window.speechSynthesis.cancel();
+    setSpeaking(false);
+  };
+
+  const startListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("तुमचा browser voice support करत नाही. Chrome वापरा.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "mr-IN";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onstart = () => setListening(true);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setMessage(transcript);
+      setListening(false);
+    };
+    recognition.onerror = () => setListening(false);
+    recognition.onend = () => setListening(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) recognitionRef.current.stop();
+    setListening(false);
+  };
 
   const sendMessage = async (text) => {
     const msgText = text || message;
@@ -19,6 +66,7 @@ export default function App() {
     setChat(updatedChat);
     setMessage("");
     setLoading(true);
+    window.speechSynthesis.cancel();
 
     try {
       const controller = new AbortController();
@@ -33,7 +81,10 @@ export default function App() {
 
       clearTimeout(timeout);
       const data = await res.json();
-      setChat([...updatedChat, { role: "ai", text: data.reply, feedback: null }]);
+      const aiReply = data.reply;
+      setChat([...updatedChat, { role: "ai", text: aiReply, feedback: null }]);
+      speakText(aiReply);
+
     } catch (err) {
       setChat([...updatedChat, {
         role: "ai",
@@ -102,20 +153,31 @@ export default function App() {
             AI शेती सहाय्यक • Online
           </div>
         </div>
-        {chat.length > 0 && (
-          <button
-            onClick={() => setChat([])}
-            style={{
-              marginLeft: "auto",
-              background: "rgba(255,255,255,0.2)",
-              border: "none",
-              color: "white",
-              padding: "6px 12px",
-              borderRadius: 20,
-              fontSize: 12,
-              cursor: "pointer"
-            }}
-          >
+        {speaking && (
+          <button onClick={stopSpeaking} style={{
+            marginLeft: "auto",
+            background: "rgba(255,255,255,0.2)",
+            border: "none",
+            color: "white",
+            padding: "6px 12px",
+            borderRadius: 20,
+            fontSize: 12,
+            cursor: "pointer"
+          }}>
+            🔇 थांबवा
+          </button>
+        )}
+        {chat.length > 0 && !speaking && (
+          <button onClick={() => { setChat([]); stopSpeaking(); }} style={{
+            marginLeft: "auto",
+            background: "rgba(255,255,255,0.2)",
+            border: "none",
+            color: "white",
+            padding: "6px 12px",
+            borderRadius: 20,
+            fontSize: 12,
+            cursor: "pointer"
+          }}>
             नवीन चॅट
           </button>
         )}
@@ -131,7 +193,6 @@ export default function App() {
         gap: 12
       }}>
 
-        {/* Welcome screen */}
         {chat.length === 0 && (
           <div style={{ padding: "8px 4px" }}>
             <div style={{
@@ -143,48 +204,38 @@ export default function App() {
               boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
             }}>
               <div style={{ fontSize: 52 }}>🌱</div>
-              <h2 style={{
-                margin: "12px 0 6px",
-                color: "#1b5e20",
-                fontSize: 18
-              }}>
+              <h2 style={{ margin: "12px 0 6px", color: "#1b5e20", fontSize: 18 }}>
                 नमस्ते! मी Krushiverse
               </h2>
-              <p style={{ color: "#666", fontSize: 14, margin: 0 }}>
+              <p style={{ color: "#666", fontSize: 14, margin: "0 0 8px" }}>
                 शेतीविषयक कोणताही प्रश्न विचारा
+              </p>
+              <p style={{ color: "#888", fontSize: 12, margin: 0 }}>
+                🎤 बोलून विचारा किंवा टाइप करा
               </p>
             </div>
 
-            <p style={{
-              fontSize: 13,
-              color: "#888",
-              marginBottom: 10,
-              paddingLeft: 4
-            }}>
+            <p style={{ fontSize: 13, color: "#888", marginBottom: 10, paddingLeft: 4 }}>
               💬 असे विचारा:
             </p>
 
             {suggestedQuestions.map((q, index) => (
-              <button
-                key={index}
-                onClick={() => sendMessage(q.text)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  width: "100%",
-                  padding: "12px 14px",
-                  marginBottom: 8,
-                  background: "white",
-                  border: "1px solid #e8f5e9",
-                  borderRadius: 12,
-                  fontSize: 14,
-                  color: "#333",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-                }}
-              >
+              <button key={index} onClick={() => sendMessage(q.text)} style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                width: "100%",
+                padding: "12px 14px",
+                marginBottom: 8,
+                background: "white",
+                border: "1px solid #e8f5e9",
+                borderRadius: 12,
+                fontSize: 14,
+                color: "#333",
+                cursor: "pointer",
+                textAlign: "left",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+              }}>
                 <span style={{ fontSize: 20 }}>{q.emoji}</span>
                 <span>{q.text}</span>
               </button>
@@ -192,7 +243,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Messages */}
         {chat.map((msg, index) => (
           <div key={index} style={{
             display: "flex",
@@ -208,8 +258,7 @@ export default function App() {
             }}>
               {msg.role === "ai" && (
                 <div style={{
-                  width: 32,
-                  height: 32,
+                  width: 32, height: 32,
                   borderRadius: "50%",
                   background: "#2e7d32",
                   display: "flex",
@@ -222,12 +271,8 @@ export default function App() {
               <div style={{
                 maxWidth: "75%",
                 padding: "10px 14px",
-                borderRadius: msg.role === "user"
-                  ? "18px 18px 4px 18px"
-                  : "18px 18px 18px 4px",
-                background: msg.role === "user"
-                  ? "linear-gradient(135deg, #2e7d32, #388e3c)"
-                  : "white",
+                borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                background: msg.role === "user" ? "linear-gradient(135deg, #2e7d32, #388e3c)" : "white",
                 color: msg.role === "user" ? "white" : "#222",
                 boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
                 fontSize: 14,
@@ -238,48 +283,31 @@ export default function App() {
               </div>
             </div>
 
-            {/* Feedback buttons */}
             {msg.role === "ai" && (
-              <div style={{
-                display: "flex",
-                gap: 6,
-                marginLeft: 40,
-                marginTop: 2
-              }}>
+              <div style={{ display: "flex", gap: 6, marginLeft: 40, marginTop: 2, flexWrap: "wrap" }}>
+                <button onClick={() => speakText(msg.text)} style={{
+                  background: "white", border: "1px solid #e0e0e0",
+                  borderRadius: 20, padding: "3px 10px",
+                  fontSize: 13, cursor: "pointer", color: "#555"
+                }}>
+                  🔊 ऐका
+                </button>
                 {msg.feedback === "up" ? (
-                  <span style={{ fontSize: 13, color: "#2e7d32" }}>✅ धन्यवाद!</span>
+                  <span style={{ fontSize: 13, color: "#2e7d32", padding: "3px 6px" }}>✅ धन्यवाद!</span>
                 ) : msg.feedback === "down" ? (
-                  <span style={{ fontSize: 13, color: "#c62828" }}>❌ नोंदवले</span>
+                  <span style={{ fontSize: 13, color: "#c62828", padding: "3px 6px" }}>❌ नोंदवले</span>
                 ) : (
                   <>
-                    <button
-                      onClick={() => handleFeedback(index, "up")}
-                      style={{
-                        background: "white",
-                        border: "1px solid #e0e0e0",
-                        borderRadius: 20,
-                        padding: "3px 10px",
-                        fontSize: 13,
-                        cursor: "pointer",
-                        color: "#555"
-                      }}
-                    >
-                      👍 बरोबर
-                    </button>
-                    <button
-                      onClick={() => handleFeedback(index, "down")}
-                      style={{
-                        background: "white",
-                        border: "1px solid #e0e0e0",
-                        borderRadius: 20,
-                        padding: "3px 10px",
-                        fontSize: 13,
-                        cursor: "pointer",
-                        color: "#555"
-                      }}
-                    >
-                      👎 चुकीचे
-                    </button>
+                    <button onClick={() => handleFeedback(index, "up")} style={{
+                      background: "white", border: "1px solid #e0e0e0",
+                      borderRadius: 20, padding: "3px 10px",
+                      fontSize: 13, cursor: "pointer", color: "#555"
+                    }}>👍 बरोबर</button>
+                    <button onClick={() => handleFeedback(index, "down")} style={{
+                      background: "white", border: "1px solid #e0e0e0",
+                      borderRadius: 20, padding: "3px 10px",
+                      fontSize: 13, cursor: "pointer", color: "#555"
+                    }}>👎 चुकीचे</button>
                   </>
                 )}
               </div>
@@ -287,30 +315,18 @@ export default function App() {
           </div>
         ))}
 
-        {/* Thinking indicator */}
         {loading && (
-          <div style={{
-            display: "flex",
-            alignItems: "flex-end",
-            gap: 8
-          }}>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
             <div style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "#2e7d32",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 16
+              width: 32, height: 32, borderRadius: "50%",
+              background: "#2e7d32", display: "flex",
+              alignItems: "center", justifyContent: "center", fontSize: 16
             }}>🌾</div>
             <div style={{
-              padding: "12px 16px",
-              background: "white",
+              padding: "12px 16px", background: "white",
               borderRadius: "18px 18px 18px 4px",
               boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-              color: "#888",
-              fontSize: 14
+              color: "#888", fontSize: 14
             }}>
               विचार करत आहे... 🌱
             </div>
@@ -330,9 +346,28 @@ export default function App() {
         alignItems: "center",
         boxShadow: "0 -2px 8px rgba(0,0,0,0.05)"
       }}>
+        <button
+          onClick={listening ? stopListening : startListening}
+          disabled={loading}
+          style={{
+            width: 44, height: 44,
+            background: listening ? "#c62828" : "#e8f5e9",
+            border: listening ? "2px solid #c62828" : "2px solid #c8e6c9",
+            borderRadius: "50%",
+            fontSize: 20,
+            cursor: loading ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0
+          }}
+        >
+          {listening ? "⏹️" : "🎤"}
+        </button>
+
         <input
           type="text"
-          placeholder="शेतीविषयक प्रश्न विचारा..."
+          placeholder={listening ? "ऐकत आहे..." : "शेतीविषयक प्रश्न विचारा..."}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -348,12 +383,12 @@ export default function App() {
             color: "#333"
           }}
         />
+
         <button
           onClick={() => sendMessage()}
           disabled={loading || !message.trim()}
           style={{
-            width: 44,
-            height: 44,
+            width: 44, height: 44,
             background: loading || !message.trim() ? "#ccc" : "#2e7d32",
             color: "white",
             border: "none",
