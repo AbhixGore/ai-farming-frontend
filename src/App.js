@@ -91,7 +91,6 @@ export default function App() {
 
     recognition.onresult = (event) => {
       let interim = "";
-
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
@@ -100,21 +99,23 @@ export default function App() {
           interim += transcript;
         }
       }
-
       setMessage(finalTranscriptRef.current + interim);
     };
 
     recognition.onerror = (e) => {
-      if (e.error !== "no-speech") {
+      if (e.error === "no-speech" || e.error === "network") {
+        // Auto restart on no-speech
+        try { recognition.start(); } catch(err) {}
+      } else {
         setListening(false);
       }
     };
 
     recognition.onend = () => {
-      if (finalTranscriptRef.current.trim()) {
-        setMessage(finalTranscriptRef.current.trim());
+      // Auto restart if still in listening mode
+      if (recognitionRef.current === recognition) {
+        try { recognition.start(); } catch(err) { setListening(false); }
       }
-      setListening(false);
     };
 
     recognitionRef.current = recognition;
