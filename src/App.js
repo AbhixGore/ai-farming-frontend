@@ -82,13 +82,30 @@ export default function App() {
     }
     const recognition = new SpeechRecognition();
     recognition.lang = "mr-IN";
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.onstart = () => setListening(true);
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setMessage(transcript);
-      setListening(false);
+      let finalTranscript = "";
+      let interimTranscript = "";
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      
+      // Show interim results while speaking
+      if (interimTranscript) {
+        setMessage(interimTranscript);
+      }
+      
+      // Set final result when farmer pauses
+      if (finalTranscript) {
+        setMessage(prev => prev + finalTranscript);
+      }
     };
     recognition.onerror = () => setListening(false);
     recognition.onend = () => setListening(false);
