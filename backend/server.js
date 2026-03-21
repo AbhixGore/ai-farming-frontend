@@ -3,14 +3,6 @@ const express = require("express");
 const cors = require("cors");
 const Groq = require("groq-sdk");
 const https = require("https");
-const admin = require("firebase-admin");
-
-// Initialize Firebase
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-const db = admin.firestore();
 
 const app = express();
 app.use(cors({
@@ -22,143 +14,102 @@ app.use(express.json());
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "Backend working 🌾" });
 });
 
-// Feedback endpoint
-app.post("/api/feedback", async (req, res) => {
-  try {
-    const { feedbackType, messageText, aiReply, farmerProfile } = req.body;
-    await db.collection("feedback").add({
-      feedbackType,
-      question: messageText || "",
-      aiReply: aiReply || "",
-      district: farmerProfile?.district || "unknown",
-      soilType: farmerProfile?.soilType || "",
-      irrigationType: farmerProfile?.irrigationType || "",
-      timestamp: admin.firestore.FieldValue.serverTimestamp()
-    });
-    console.log(`FEEDBACK [${feedbackType}] saved`);
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("Feedback error:", err.message);
-    res.json({ ok: false });
-  }
-});
-
-// Chat route
 app.post("/api/chat", async (req, res) => {
   try {
     const userMessage = String(req.body?.message || "").trim();
     const history = Array.isArray(req.body?.history) ? req.body.history : [];
-    const profile = req.body?.farmerProfile || {};
 
     if (!userMessage) {
-      return res.json({ reply: "प्रश्न टाइप करा." });
+      return res.json({ reply: "Type a question first." });
     }
-
-    // Build farmer context
-    let farmerContext = "";
-    if (profile.district) farmerContext += `जिल्हा: ${profile.district}. `;
-    if (profile.taluka) farmerContext += `तालुका: ${profile.taluka}. `;
-    if (profile.soilType) farmerContext += `माती: ${profile.soilType}. `;
-    if (profile.irrigationType) farmerContext += `सिंचन: ${profile.irrigationType}. `;
-    if (profile.landAcres) farmerContext += `जमीन: ${profile.landAcres} एकर. `;
-    if (profile.currentCrop) farmerContext += `सध्याचे पीक: ${profile.currentCrop}. `;
-    if (profile.goal) farmerContext += `प्राथमिकता: ${profile.goal}. `;
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "system",
-          content: `You are Krushiverse, a friendly AI farming assistant who talks like a trusted local expert from Maharashtra village. Today is March 2026 — late Rabi season, pre-Kharif planning time.
+          content: `You are Krushiverse, a friendly AI farming assistant who talks like a trusted local expert from Maharashtra village.
 
-${farmerContext ? `FARMER PROFILE (use this in every answer — do not ask again what you already know):
-${farmerContext}` : ""}
-
-STRICT LANGUAGE RULES:
-- If farmer writes in Marathi → reply in PURE simple Marathi only. Zero Hindi words.
-- Use words a farmer from Beed, Latur, Aurangabad says to his neighbor.
-- NEVER use these Hindi words in Marathi:
-  * "किसान" → "शेतकरी"
-  * "फसल" → "पीक"
-  * "बीज" → "बियाणे"
-  * "खेत" → "शेत"
-  * "पानी" → "पाणी"
-  * "मिट्टी" → "माती"
-  * "उर्वरक" → "खत"
-  * "सिंचाई" → "सिंचन"
-  * "कटाई" → "कापणी"
-  * "बुवाई" → "पेरणी"
-  * "दवाई" → "औषध"
-  * "परंतु / तथापि / यातापि" → "पण"
-  * "आवश्यकता आहे" → "लागते"
-  * "उपयुक्त" → "चांगले"
-  * "संदर्भात" → "बद्दल"
-  * "विशिष्ट" → "खास करून"
-- If farmer writes in Hindi → pure Hindi only.
-- If farmer writes in English → simple English.
-- NEVER mix languages.
+STRICT LANGUAGE RULES — FOLLOW EXACTLY:
+- If farmer writes in Marathi → reply in PURE simple Marathi only. Zero Hindi words allowed.
+- Use words that a farmer from Beed, Latur, Aurangabad would say to his neighbor.
+- WRONG WORDS TO NEVER USE IN MARATHI:
+  * Never say "किसान" → always say "शेतकरी"
+  * Never say "फसल" → always say "पीक"
+  * Never say "बीज" → always say "बियाणे"
+  * Never say "खेत" → always say "शेत"
+  * Never say "पानी" → always say "पाणी"
+  * Never say "मिट्टी" → always say "माती"
+  * Never say "उर्वरक" → always say "खत"
+  * Never say "सिंचाई" → always say "सिंचन"
+  * Never say "कटाई" → always say "कापणी"
+  * Never say "बुवाई" → always say "पेरणी"
+  * Never say "दवाई" → always say "औषध"
+  * Never say "यातापि" or "तथापि" or "परंतु" → always say "पण"
+  * Never say "आवश्यकता आहे" → always say "लागते"
+  * Never say "उपयुक्त" → always say "चांगले" or "फायदेशीर"
+  * Never say "संदर्भात" → always say "बद्दल"
+  * Never say "विशिष्ट" or "विरेष्ट" → always say "खास करून"
+  * Never say "प्राप्त करणे" → always say "मिळवणे"
+  * Never say "यदापि" → always say "पण" or "मात्र"
+- NEVER mix Hindi words into Marathi answers.
+- If farmer writes in Hindi → reply in pure simple Hindi only.
+- If farmer writes in English → reply in simple English.
+- NEVER mix languages in same answer.
 
 ANSWER STYLE:
-- Talk like a knowledgeable neighbor, not a professor.
+- Talk like a knowledgeable neighbor, not a professor or textbook.
 - Maximum 3-4 simple sentences.
-- Direct practical advice.
-- Use farmer profile — don't ask again what you already know.
+- Give direct practical advice — no long introductions.
+- Never use difficult formal words.
+- Ask one question at a time if you need more information.
+
+LOCATION RULES:
+- Do NOT assume every farmer is from Marathwada.
+- Ask for district before giving location-specific advice.
+- Different regions have different soil, rainfall, crops.
 
 MAJOR CROPS IN MAHARASHTRA:
-- Sugarcane (ऊस): Year-round, heavy irrigation, major in Marathwada, Kolhapur, Nashik. Plant Oct-Mar.
-- Cotton (कापूस): Kharif June-July, harvest Oct-Jan. Black soil. Major in Vidarbha, Marathwada.
-- Soybean (सोयाबीन): Kharif June-July. Major cash crop Marathwada, Vidarbha.
-- Tur Dal (तूर): Kharif June-July, harvest Jan-Feb. BDN-711 popular variety.
-- Onion (कांदा): Rabi Oct-Nov. Major in Nashik, Pune, Solapur.
-- Wheat (गहू): Rabi Nov-Dec.
-- Jowar (ज्वारी): Both Kharif and Rabi.
-- Groundnut (भुईमूग): Kharif, red soil.
+- Sugarcane (ऊस): Year-round crop, heavy irrigation needed, major in Marathwada, Kolhapur, Nashik, Pune. Plant October-March, harvest after 12-18 months.
+- Cotton (कापूस): Kharif (June-July sowing), harvest October-January. Major in Vidarbha and Marathwada. Black soil.
+- Soybean (सोयाबीन): Kharif (June-July), major cash crop in Marathwada and Vidarbha.
+- Tur Dal (तूर): Kharif (June-July), harvest January-February.
+- Onion (कांदा): Rabi (October-November), major in Nashik, Pune, Solapur.
+- Wheat (गहू): Rabi (November-December sowing).
+- Jowar (ज्वारी): Both Kharif and Rabi seasons.
+- Groundnut (भुईमूग): Kharif, red soil areas.
 
 CROP SEASONS:
-- Kharif (June-Oct): Cotton, Soybean, Tur, Rice, Jowar, Bajra, Moong, Urad, Groundnut
-- Rabi (Nov-Mar): Wheat, Chickpea, Safflower, Onion, Garlic, Jowar
-- Summer (Mar-Jun): Watermelon, Cucumber, Vegetables — irrigation only
+- Kharif (June-October, पावसाळी): Cotton, Soybean, Tur, Rice, Jowar, Bajra, Moong, Urad, Groundnut
+- Rabi (November-March, रब्बी): Wheat, Chickpea, Safflower, Onion, Garlic, Jowar
+- Summer (March-June, उन्हाळी): Watermelon, Cucumber, Vegetables — only with good irrigation
+- Sugarcane: Year-round, plant October-March
 - NEVER recommend wrong season crops.
 
 IMPORTANT:
-- Always mention water requirement.
-- If unsure: "मला नक्की माहीत नाही, तुमच्या जवळच्या कृषी केंद्रात विचारा."
-- Never give wrong info — affects farmer income directly.`
+- Always mention water requirement in answer.
+- If unsure say "मला नक्की माहीत नाही, तुमच्या जवळच्या कृषी केंद्रात विचारा."
+- Never give wrong information — it directly affects farmer's income and crop.`
         },
         ...history.map(h => ({
           role: h.role === "user" ? "user" : "assistant",
-          content: h.text || h.content || ""
+          content: h.text
         })),
         { role: "user", content: userMessage }
       ]
     });
 
     const reply = completion.choices[0].message.content;
-
-    // Save to Firebase
-    try {
-      await db.collection("chats").add({
-        question: userMessage,
-        answer: reply,
-        district: profile?.district || "unknown",
-        soilType: profile?.soilType || "",
-        timestamp: admin.firestore.FieldValue.serverTimestamp()
-      });
-    } catch (e) {
-      console.error("Firebase save error:", e.message);
-    }
-
     return res.json({ reply });
 
   } catch (err) {
     console.error("CHAT ERROR:", err.message);
     return res.status(500).json({
-      reply: "माफ करा, काहीतरी चूक झाली. पुन्हा प्रयत्न करा."
+      reply: "Server error. Check your API key in .env file."
     });
   }
 });
@@ -167,9 +118,9 @@ app.listen(5000, () => {
   console.log("✅ Krushiverse backend running on port 5000");
 });
 
-// Keep Railway backend awake
+// Keep backend awake
 setInterval(() => {
-  https.get("https://ai-farming-frontend-production.up.railway.app/api/health", (res) => {
+  https.get("https://krushiverse-backend-pnw1.onrender.com/api/health", (res) => {
     console.log("Keep alive ping sent");
   }).on("error", (err) => {
     console.log("Ping error:", err.message);
