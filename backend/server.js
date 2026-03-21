@@ -12,7 +12,12 @@ app.use(cors({
 }));
 app.use(express.json());
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+let groq;
+try {
+  groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+} catch (e) {
+  console.error("Groq init error:", e.message);
+}
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "Krushiverse backend working 🌾" });
