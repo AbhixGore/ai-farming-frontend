@@ -115,106 +115,172 @@ function LanguageScreen({ onSelect }) {
       display: "flex", alignItems: "center", justifyContent: "center",
       zIndex: 2000, padding: 24, overflow: "hidden"
     }}>
-      {/* Animated SVG background */}
-      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.18 }} viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+      {/* Cartoon farm background */}
+      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} viewBox="0 0 800 900" preserveAspectRatio="xMidYMid slice">
         <style>{`
-          @keyframes sway1 { 0%,100%{transform:rotate(-4deg) translateX(0)} 50%{transform:rotate(4deg) translateX(3px)} }
-          @keyframes sway2 { 0%,100%{transform:rotate(3deg) translateX(0)} 50%{transform:rotate(-3deg) translateX(-3px)} }
-          @keyframes sway3 { 0%,100%{transform:rotate(-2deg)} 50%{transform:rotate(5deg)} }
-          @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-          @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-          @keyframes sunrise { 0%,100%{opacity:0.6} 50%{opacity:1} }
-          .s1{transform-origin:30px 680px; animation:sway1 3.2s ease-in-out infinite;}
-          .s2{transform-origin:80px 720px; animation:sway2 2.8s ease-in-out infinite 0.4s;}
-          .s3{transform-origin:130px 700px; animation:sway1 3.5s ease-in-out infinite 0.8s;}
-          .s4{transform-origin:200px 690px; animation:sway2 3s ease-in-out infinite 0.2s;}
-          .s5{transform-origin:260px 710px; animation:sway3 2.6s ease-in-out infinite 0.6s;}
-          .s6{transform-origin:320px 680px; animation:sway1 3.3s ease-in-out infinite 1s;}
-          .s7{transform-origin:370px 700px; animation:sway2 2.9s ease-in-out infinite 0.3s;}
-          .c1{animation:float1 4s ease-in-out infinite;}
-          .c2{animation:float2 5s ease-in-out infinite 1s;}
-          .sun{animation:sunrise 4s ease-in-out infinite;}
+          @keyframes sunPulse { 0%,100%{r:52} 50%{r:58} }
+          @keyframes cloudMove1 { 0%{transform:translateX(0)} 100%{transform:translateX(60px)} }
+          @keyframes cloudMove2 { 0%{transform:translateX(0)} 100%{transform:translateX(-50px)} }
+          @keyframes windmill { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+          @keyframes sway { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+          @keyframes sway2 { 0%,100%{transform:rotate(3deg)} 50%{transform:rotate(-3deg)} }
+          @keyframes birdFly { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-10px)} }
+          .cloud1 { animation: cloudMove1 18s ease-in-out infinite alternate; }
+          .cloud2 { animation: cloudMove2 22s ease-in-out infinite alternate; }
+          .blade { transform-origin: 285px 355px; animation: windmill 4s linear infinite; }
+          .crop1 { transform-origin: 80px 780px; animation: sway 2.5s ease-in-out infinite; }
+          .crop2 { transform-origin: 160px 760px; animation: sway2 3s ease-in-out infinite 0.3s; }
+          .crop3 { transform-origin: 240px 770px; animation: sway 2.8s ease-in-out infinite 0.6s; }
+          .crop4 { transform-origin: 560px 775px; animation: sway2 2.6s ease-in-out infinite 0.2s; }
+          .crop5 { transform-origin: 640px 760px; animation: sway 3.1s ease-in-out infinite 0.5s; }
+          .crop6 { transform-origin: 720px 770px; animation: sway2 2.7s ease-in-out infinite 0.8s; }
+          .bird1 { animation: birdFly 4s ease-in-out infinite; }
+          .bird2 { animation: birdFly 5s ease-in-out infinite 1.5s; }
         `}</style>
-        {/* Sun */}
-        <circle className="sun" cx="200" cy="120" r="55" fill="#fff9c4" />
-        <circle cx="200" cy="120" r="38" fill="#fff176" />
-        {/* Sun rays */}
+
+        {/* Sky */}
+        <rect x="0" y="0" width="800" height="900" fill="#87CEEB"/>
+        <rect x="0" y="0" width="800" height="500" fill="#5BB8F5"/>
+
+        {/* Sun with rays */}
+        <circle cx="650" cy="100" r="55" fill="#FFF176" opacity="0.9"/>
+        <circle cx="650" cy="100" r="42" fill="#FFEE58"/>
         {[0,30,60,90,120,150,180,210,240,270,300,330].map((deg,i) => (
-          <line key={i} x1="200" y1="120"
-            x2={200 + Math.cos(deg*Math.PI/180)*75}
-            y2={120 + Math.sin(deg*Math.PI/180)*75}
-            stroke="#fff9c4" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
+          <line key={i}
+            x1={650 + Math.cos(deg*Math.PI/180)*48}
+            y1={100 + Math.sin(deg*Math.PI/180)*48}
+            x2={650 + Math.cos(deg*Math.PI/180)*80}
+            y2={100 + Math.sin(deg*Math.PI/180)*80}
+            stroke="#FFF9C4" strokeWidth="4" strokeLinecap="round" opacity="0.8"/>
         ))}
+
         {/* Clouds */}
-        <g className="c1">
-          <ellipse cx="80" cy="200" rx="45" ry="18" fill="white" opacity="0.5"/>
-          <ellipse cx="105" cy="190" rx="30" ry="20" fill="white" opacity="0.5"/>
-          <ellipse cx="58" cy="192" rx="25" ry="15" fill="white" opacity="0.5"/>
+        <g className="cloud1">
+          <ellipse cx="120" cy="140" rx="70" ry="28" fill="white" opacity="0.95"/>
+          <ellipse cx="155" cy="122" rx="48" ry="34" fill="white" opacity="0.95"/>
+          <ellipse cx="85" cy="128" rx="38" ry="26" fill="white" opacity="0.95"/>
+          <ellipse cx="190" cy="130" rx="32" ry="22" fill="white" opacity="0.95"/>
         </g>
-        <g className="c2">
-          <ellipse cx="300" cy="160" rx="50" ry="16" fill="white" opacity="0.4"/>
-          <ellipse cx="325" cy="150" rx="32" ry="18" fill="white" opacity="0.4"/>
-          <ellipse cx="278" cy="153" rx="28" ry="13" fill="white" opacity="0.4"/>
+        <g className="cloud2">
+          <ellipse cx="420" cy="110" rx="80" ry="26" fill="white" opacity="0.9"/>
+          <ellipse cx="460" cy="90" rx="52" ry="36" fill="white" opacity="0.9"/>
+          <ellipse cx="385" cy="100" rx="40" ry="25" fill="white" opacity="0.9"/>
         </g>
-        {/* Ground */}
-        <rect x="0" y="740" width="400" height="60" fill="#1a4a1a" />
-        <ellipse cx="200" cy="740" rx="220" ry="18" fill="#1a4a1a" />
-        {/* Wheat stalks */}
-        <g className="s1">
-          <line x1="30" y1="680" x2="25" y2="500" stroke="#c8a84b" strokeWidth="3" strokeLinecap="round"/>
-          <ellipse cx="25" cy="495" rx="5" ry="18" fill="#c8a84b"/>
-          <ellipse cx="18" cy="510" rx="4" ry="12" fill="#c8a84b" transform="rotate(-20,18,510)"/>
-          <ellipse cx="32" cy="510" rx="4" ry="12" fill="#c8a84b" transform="rotate(20,32,510)"/>
-        </g>
-        <g className="s2">
-          <line x1="80" y1="720" x2="78" y2="520" stroke="#c8a84b" strokeWidth="3" strokeLinecap="round"/>
-          <ellipse cx="78" cy="515" rx="5" ry="20" fill="#c8a84b"/>
-          <ellipse cx="70" cy="532" rx="4" ry="13" fill="#c8a84b" transform="rotate(-20,70,532)"/>
-          <ellipse cx="86" cy="532" rx="4" ry="13" fill="#c8a84b" transform="rotate(20,86,532)"/>
-        </g>
-        <g className="s3">
-          <line x1="130" y1="700" x2="128" y2="490" stroke="#7cb342" strokeWidth="3" strokeLinecap="round"/>
-          <ellipse cx="128" cy="485" rx="5" ry="18" fill="#7cb342"/>
-          <ellipse cx="120" cy="500" rx="4" ry="12" fill="#7cb342" transform="rotate(-20,120,500)"/>
-          <ellipse cx="136" cy="500" rx="4" ry="12" fill="#7cb342" transform="rotate(20,136,500)"/>
-        </g>
-        <g className="s4">
-          <line x1="200" y1="690" x2="198" y2="480" stroke="#c8a84b" strokeWidth="3.5" strokeLinecap="round"/>
-          <ellipse cx="198" cy="474" rx="6" ry="22" fill="#c8a84b"/>
-          <ellipse cx="188" cy="492" rx="5" ry="14" fill="#c8a84b" transform="rotate(-20,188,492)"/>
-          <ellipse cx="208" cy="492" rx="5" ry="14" fill="#c8a84b" transform="rotate(20,208,492)"/>
-        </g>
-        <g className="s5">
-          <line x1="260" y1="710" x2="258" y2="510" stroke="#7cb342" strokeWidth="3" strokeLinecap="round"/>
-          <ellipse cx="258" cy="505" rx="5" ry="19" fill="#7cb342"/>
-          <ellipse cx="250" cy="520" rx="4" ry="12" fill="#7cb342" transform="rotate(-20,250,520)"/>
-          <ellipse cx="266" cy="520" rx="4" ry="12" fill="#7cb342" transform="rotate(20,266,520)"/>
-        </g>
-        <g className="s6">
-          <line x1="320" y1="680" x2="318" y2="490" stroke="#c8a84b" strokeWidth="3" strokeLinecap="round"/>
-          <ellipse cx="318" cy="484" rx="5" ry="18" fill="#c8a84b"/>
-          <ellipse cx="310" cy="500" rx="4" ry="12" fill="#c8a84b" transform="rotate(-20,310,500)"/>
-          <ellipse cx="326" cy="500" rx="4" ry="12" fill="#c8a84b" transform="rotate(20,326,500)"/>
-        </g>
-        <g className="s7">
-          <line x1="370" y1="700" x2="368" y2="510" stroke="#7cb342" strokeWidth="3" strokeLinecap="round"/>
-          <ellipse cx="368" cy="504" rx="5" ry="18" fill="#7cb342"/>
-          <ellipse cx="360" cy="520" rx="4" ry="12" fill="#7cb342" transform="rotate(-20,360,520)"/>
-          <ellipse cx="376" cy="520" rx="4" ry="12" fill="#7cb342" transform="rotate(20,376,520)"/>
-        </g>
+
         {/* Birds */}
-        <g opacity="0.6" style={{animation:"float1 6s ease-in-out infinite"}}>
-          <path d="M150 280 Q158 274 166 280" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M172 275 Q180 269 188 275" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+        <g className="bird1" opacity="0.7">
+          <path d="M200 200 Q210 192 220 200" fill="none" stroke="#2c3e50" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M225 196 Q235 188 245 196" fill="none" stroke="#2c3e50" strokeWidth="2.5" strokeLinecap="round"/>
         </g>
-        <g opacity="0.5" style={{animation:"float2 7s ease-in-out infinite 2s"}}>
-          <path d="M240 310 Q246 305 252 310" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M256 306 Q262 301 268 306" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+        <g className="bird2" opacity="0.6">
+          <path d="M490 170 Q498 163 506 170" fill="none" stroke="#2c3e50" strokeWidth="2" strokeLinecap="round"/>
+          <path d="M510 166 Q518 159 526 166" fill="none" stroke="#2c3e50" strokeWidth="2" strokeLinecap="round"/>
         </g>
+
+        {/* Far hills */}
+        <ellipse cx="150" cy="480" rx="220" ry="120" fill="#66BB6A"/>
+        <ellipse cx="500" cy="460" rx="260" ry="130" fill="#81C784"/>
+        <ellipse cx="750" cy="490" rx="180" ry="110" fill="#4CAF50"/>
+
+        {/* Main ground - rolling fields */}
+        <path d="M0 520 Q100 490 200 510 Q350 480 500 505 Q650 490 800 510 L800 900 L0 900Z" fill="#4CAF50"/>
+        <path d="M0 560 Q120 535 250 550 Q400 525 550 545 Q700 530 800 548 L800 900 L0 900Z" fill="#388E3C"/>
+        <path d="M0 620 Q150 600 300 615 Q450 595 600 612 Q700 600 800 610 L800 900 L0 900Z" fill="#2E7D32"/>
+
+        {/* Farm field strips */}
+        <path d="M50 590 Q200 570 350 585 Q500 568 650 582 Q720 574 800 580 L800 640 Q720 634 650 642 Q500 628 350 645 Q200 630 50 650Z" fill="#8D6E63" opacity="0.5"/>
+        <path d="M0 650 Q150 635 300 648 Q450 630 600 645 Q700 635 800 642 L800 700 L0 700Z" fill="#795548" opacity="0.4"/>
+
+        {/* Road/path */}
+        <path d="M380 900 Q390 750 400 650 Q405 580 410 520" stroke="#D2B48C" strokeWidth="30" fill="none" opacity="0.6"/>
+        <path d="M380 900 Q390 750 400 650 Q405 580 410 520" stroke="#C4A882" strokeWidth="18" fill="none" opacity="0.4" strokeDasharray="30 15"/>
+
+        {/* Farmhouse */}
+        <rect x="460" y="490" width="80" height="55" fill="#EFEBE9" rx="2"/>
+        <path d="M455 492 L500 458 L545 492Z" fill="#E53935"/>
+        <rect x="478" y="515" width="18" height="30" fill="#795548" rx="2"/>
+        <rect x="462" y="498" width="16" height="14" fill="#90CAF9" rx="1"/>
+        <rect x="516" y="498" width="16" height="14" fill="#90CAF9" rx="1"/>
+
+        {/* Barn */}
+        <rect x="580" y="500" width="65" height="50" fill="#C62828" rx="2"/>
+        <path d="M575 502 L612 472 L649 502Z" fill="#B71C1C"/>
+        <path d="M596 550 L596 522 Q612 510 628 522 L628 550Z" fill="#4E342E"/>
+
+        {/* Trees */}
+        <rect x="350" y="520" width="8" height="35" fill="#5D4037"/>
+        <circle cx="354" cy="510" r="22" fill="#2E7D32"/>
+        <circle cx="344" cy="518" r="16" fill="#388E3C"/>
+        <circle cx="364" cy="516" r="15" fill="#1B5E20"/>
+
+        <rect x="430" y="515" width="7" height="30" fill="#5D4037"/>
+        <circle cx="433" cy="506" r="18" fill="#388E3C"/>
+        <circle cx="424" cy="513" r="13" fill="#2E7D32"/>
+
+        {/* Windmill */}
+        <rect x="282" y="430" width="8" height="100" fill="#BDBDBD" rx="2"/>
+        <circle cx="286" cy="432" r="6" fill="#9E9E9E"/>
+        <g className="blade">
+          <path d="M286 432 L286 390 Q295 408 286 432Z" fill="#E0E0E0" opacity="0.9"/>
+          <path d="M286 432 L320 450 Q306 458 286 432Z" fill="#E0E0E0" opacity="0.9"/>
+          <path d="M286 432 L286 474 Q277 456 286 432Z" fill="#E0E0E0" opacity="0.9"/>
+          <path d="M286 432 L252 414 Q266 406 286 432Z" fill="#E0E0E0" opacity="0.9"/>
+        </g>
+
+        {/* Foreground crops - left side */}
+        <g className="crop1">
+          <line x1="80" y1="780" x2="76" y2="680" stroke="#558B2F" strokeWidth="4" strokeLinecap="round"/>
+          <ellipse cx="76" cy="672" rx="7" ry="22" fill="#7CB342"/>
+          <ellipse cx="66" cy="690" rx="5" ry="14" fill="#8BC34A" transform="rotate(-25,66,690)"/>
+          <ellipse cx="86" cy="690" rx="5" ry="14" fill="#8BC34A" transform="rotate(25,86,690)"/>
+        </g>
+        <g className="crop2">
+          <line x1="160" y1="760" x2="157" y2="650" stroke="#558B2F" strokeWidth="4" strokeLinecap="round"/>
+          <ellipse cx="157" cy="642" rx="7" ry="24" fill="#C8A84B"/>
+          <ellipse cx="146" cy="662" rx="5" ry="15" fill="#D4B44A" transform="rotate(-25,146,662)"/>
+          <ellipse cx="168" cy="662" rx="5" ry="15" fill="#D4B44A" transform="rotate(25,168,662)"/>
+        </g>
+        <g className="crop3">
+          <line x1="240" y1="770" x2="237" y2="660" stroke="#558B2F" strokeWidth="4" strokeLinecap="round"/>
+          <ellipse cx="237" cy="652" rx="7" ry="22" fill="#7CB342"/>
+          <ellipse cx="227" cy="670" rx="5" ry="14" fill="#8BC34A" transform="rotate(-25,227,670)"/>
+          <ellipse cx="247" cy="670" rx="5" ry="14" fill="#8BC34A" transform="rotate(25,247,670)"/>
+        </g>
+
+        {/* Foreground crops - right side */}
+        <g className="crop4">
+          <line x1="560" y1="775" x2="557" y2="665" stroke="#558B2F" strokeWidth="4" strokeLinecap="round"/>
+          <ellipse cx="557" cy="657" rx="7" ry="22" fill="#C8A84B"/>
+          <ellipse cx="547" cy="675" rx="5" ry="14" fill="#D4B44A" transform="rotate(-25,547,675)"/>
+          <ellipse cx="567" cy="675" rx="5" ry="14" fill="#D4B44A" transform="rotate(25,567,675)"/>
+        </g>
+        <g className="crop5">
+          <line x1="640" y1="760" x2="637" y2="655" stroke="#558B2F" strokeWidth="4" strokeLinecap="round"/>
+          <ellipse cx="637" cy="647" rx="7" ry="24" fill="#7CB342"/>
+          <ellipse cx="627" cy="666" rx="5" ry="15" fill="#8BC34A" transform="rotate(-25,627,666)"/>
+          <ellipse cx="647" cy="666" rx="5" ry="15" fill="#8BC34A" transform="rotate(25,647,666)"/>
+        </g>
+        <g className="crop6">
+          <line x1="720" y1="770" x2="717" y2="660" stroke="#558B2F" strokeWidth="4" strokeLinecap="round"/>
+          <ellipse cx="717" cy="652" rx="7" ry="22" fill="#C8A84B"/>
+          <ellipse cx="707" cy="670" rx="5" ry="14" fill="#D4B44A" transform="rotate(-25,707,670)"/>
+          <ellipse cx="727" cy="670" rx="5" ry="14" fill="#D4B44A" transform="rotate(25,727,670)"/>
+        </g>
+
+        {/* Small pond */}
+        <ellipse cx="200" cy="570" rx="45" ry="18" fill="#29B6F6" opacity="0.7"/>
+        <ellipse cx="200" cy="570" rx="38" ry="12" fill="#4FC3F7" opacity="0.5"/>
+
+        {/* Fence posts */}
+        {[320,340,360,380,400,420,440,460].map((x,i) => (
+          <rect key={i} x={x} y="615" width="4" height="25" fill="#8D6E63" rx="1"/>
+        ))}
+        <line x1="320" y1="622" x2="464" y2="622" stroke="#8D6E63" strokeWidth="2.5"/>
+        <line x1="320" y1="632" x2="464" y2="632" stroke="#8D6E63" strokeWidth="2"/>
       </svg>
       <div style={{
         background: "white", borderRadius: 24, padding: "32px 24px",
-        width: "100%", maxWidth: 360,
+        width: "100%", maxWidth: 360, position: "relative", zIndex: 10,
         boxShadow: "0 16px 48px rgba(0,0,0,0.3)"
       }}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
