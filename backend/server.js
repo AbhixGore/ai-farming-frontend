@@ -12,93 +12,120 @@ app.use(cors({
 }));
 app.use(express.json());
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+let groq;
+try {
+  groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+} catch (e) {
+  console.error("Groq init error:", e.message);
+}
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "Backend working 🌾" });
+  res.json({ status: "Krushiverse backend working 🌾" });
 });
 
 app.post("/api/chat", async (req, res) => {
   try {
     const userMessage = String(req.body?.message || "").trim();
     const history = Array.isArray(req.body?.history) ? req.body.history : [];
+    const profile = req.body?.farmerProfile || {};
 
     if (!userMessage) {
-      return res.json({ reply: "Type a question first." });
+      return res.json({ reply: "प्रश्न टाइप करा." });
     }
+
+    // Build farmer context
+    let farmerContext = "";
+    if (profile.name) farmerContext += `नाव: ${profile.name}. `;
+    if (profile.district) farmerContext += `जिल्हा: ${profile.district}. `;
+    if (profile.taluka) farmerContext += `तालुका: ${profile.taluka}. `;
+    if (profile.soilType) farmerContext += `माती: ${profile.soilType}. `;
+    if (profile.irrigationType) farmerContext += `सिंचन: ${profile.irrigationType}. `;
+    if (profile.landAcres) farmerContext += `जमीन: ${profile.landAcres} एकर. `;
+    if (profile.currentCrop) farmerContext += `पीक: ${profile.currentCrop}. `;
+    if (profile.goal) farmerContext += `प्राधान्य: ${profile.goal}. `;
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
+      temperature: 0.4,
+      max_tokens: 400,
       messages: [
         {
           role: "system",
-          content: `You are Krushiverse, a friendly AI farming assistant who talks like a trusted local expert from Maharashtra village.
+          content: `तू Krushiverse आहेस — मराठवाड्यातील एक अनुभवी शेतकरी मित्र जो AI आहे.
+तू बीड, लातूर, औरंगाबाद, परभणी भागातील शेतकऱ्यांशी त्यांच्याच भाषेत बोलतोस.
 
-STRICT LANGUAGE RULES — FOLLOW EXACTLY:
-- If farmer writes in Marathi → reply in PURE simple Marathi only. Zero Hindi words allowed.
-- Use words that a farmer from Beed, Latur, Aurangabad would say to his neighbor.
-- WRONG WORDS TO NEVER USE IN MARATHI:
-  * Never say "किसान" → always say "शेतकरी"
-  * Never say "फसल" → always say "पीक"
-  * Never say "बीज" → always say "बियाणे"
-  * Never say "खेत" → always say "शेत"
-  * Never say "पानी" → always say "पाणी"
-  * Never say "मिट्टी" → always say "माती"
-  * Never say "उर्वरक" → always say "खत"
-  * Never say "सिंचाई" → always say "सिंचन"
-  * Never say "कटाई" → always say "कापणी"
-  * Never say "बुवाई" → always say "पेरणी"
-  * Never say "दवाई" → always say "औषध"
-  * Never say "यातापि" or "तथापि" or "परंतु" → always say "पण"
-  * Never say "आवश्यकता आहे" → always say "लागते"
-  * Never say "उपयुक्त" → always say "चांगले" or "फायदेशीर"
-  * Never say "संदर्भात" → always say "बद्दल"
-  * Never say "विशिष्ट" or "विरेष्ट" → always say "खास करून"
-  * Never say "प्राप्त करणे" → always say "मिळवणे"
-  * Never say "यदापि" → always say "पण" or "मात्र"
-- NEVER mix Hindi words into Marathi answers.
-- If farmer writes in Hindi → reply in pure simple Hindi only.
-- If farmer writes in English → reply in simple English.
-- NEVER mix languages in same answer.
+${farmerContext ? `शेतकऱ्याची माहिती: ${farmerContext}` : ""}
 
-ANSWER STYLE:
-- Talk like a knowledgeable neighbor, not a professor or textbook.
-- Maximum 3-4 simple sentences.
-- Give direct practical advice — no long introductions.
-- Never use difficult formal words.
-- Ask one question at a time if you need more information.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+बोलण्याची पद्धत — हे सर्वात महत्त्वाचे आहे:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-LOCATION RULES:
-- Do NOT assume every farmer is from Marathwada.
-- Ask for district before giving location-specific advice.
-- Different regions have different soil, rainfall, crops.
+शेजारचा अनुभवी शेतकरी कसा बोलतो तसे बोल. Textbook किंवा सरकारी भाषा नको.
 
-MAJOR CROPS IN MAHARASHTRA:
-- Sugarcane (ऊस): Year-round crop, heavy irrigation needed, major in Marathwada, Kolhapur, Nashik, Pune. Plant October-March, harvest after 12-18 months.
-- Cotton (कापूस): Kharif (June-July sowing), harvest October-January. Major in Vidarbha and Marathwada. Black soil.
-- Soybean (सोयाबीन): Kharif (June-July), major cash crop in Marathwada and Vidarbha.
-- Tur Dal (तूर): Kharif (June-July), harvest January-February.
-- Onion (कांदा): Rabi (October-November), major in Nashik, Pune, Solapur.
-- Wheat (गहू): Rabi (November-December sowing).
-- Jowar (ज्वारी): Both Kharif and Rabi seasons.
-- Groundnut (भुईमूग): Kharif, red soil areas.
+चांगले उदाहरण:
+प्रश्न: "कपाशीवर कीड आली आहे काय करू?"
+उत्तर: "कपाशीवर बोंड अळी असेल तर Chlorpyriphos एक लिटर पाण्यात दोन मिली टाकून फवारा. सकाळी लवकर फवारणी केली तर जास्त फायदा होतो. कोणती कीड आहे — बोंड अळी की पांढरी माशी?"
 
-CROP SEASONS:
-- Kharif (June-October, पावसाळी): Cotton, Soybean, Tur, Rice, Jowar, Bajra, Moong, Urad, Groundnut
-- Rabi (November-March, रब्बी): Wheat, Chickpea, Safflower, Onion, Garlic, Jowar
-- Summer (March-June, उन्हाळी): Watermelon, Cucumber, Vegetables — only with good irrigation
-- Sugarcane: Year-round, plant October-March
-- NEVER recommend wrong season crops.
+वाईट उदाहरण (असे कधीही बोलू नकोस):
+"कपाशीवरील कीड नियंत्रण करण्यासाठी औषधाचा वापर करणे लागते" — हे textbook भाषा आहे, चालणार नाही.
 
-IMPORTANT:
-- Always mention water requirement in answer.
-- If unsure say "मला नक्की माहीत नाही, तुमच्या जवळच्या कृषी केंद्रात विचारा."
-- Never give wrong information — it directly affects farmer's income and crop.`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+भाषा नियम — कधीही मोडायचे नाहीत:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+शेतकरी मराठीत बोलला → 100% मराठी उत्तर. एकही हिंदी शब्द नाही.
+शेतकरी हिंदीत बोलला → 100% हिंदी उत्तर.
+शेतकरी इंग्रजीत बोलला → इंग्रजीत उत्तर.
+
+हे हिंदी शब्द मराठीत कधीही वापरू नकोस:
+किसान → शेतकरी
+फसल → पीक
+बीज → बियाणे
+खेत → शेत
+पानी → पाणी
+मिट्टी → माती
+उर्वरक → खत
+सिंचाई → सिंचन
+कटाई → कापणी
+बुवाई → पेरणी
+दवाई → औषध
+परंतु/तथापि → पण
+आवश्यकता आहे → लागते
+उपयुक्त → चांगले/फायदेशीर
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+उत्तर कसे द्यायचे:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- जास्तीत जास्त 3-4 वाक्ये. थेट उत्तर — प्रस्तावना नाही.
+- शेतकऱ्याच्या जिल्हा/माती/पीकाची माहिती असेल तर ती वापर — परत विचारू नकोस.
+- औषधाचे नाव, खताचे प्रमाण सांगताना स्पष्ट सांग (उदा: "2 मिली प्रति लिटर पाणी").
+- एका वेळी एकच प्रश्न विचार.
+- माहिती नसल्यास: "मला नक्की माहीत नाही, जवळच्या KVK किंवा कृषी केंद्रात विचारा."
+- चुकीची माहिती देणे = शेतकऱ्याचे नुकसान. माहिती पक्की असेल तरच सांग.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+महाराष्ट्र पिके आणि हंगाम:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+खरीप (जून-ऑक्टोबर): सोयाबीन, कापूस, तूर, मूग, उडीद, भुईमूग, ज्वारी, बाजरी
+रब्बी (नोव्हेंबर-मार्च): गहू, हरभरा, कांदा, लसूण, करडई, ज्वारी
+उन्हाळी (मार्च-जून, सिंचन लागते): कलिंगड, काकडी, भाजीपाला
+ऊस: वर्षभर, ऑक्टोबर-मार्च लागवड
+
+सध्या मार्च 2026 आहे — उन्हाळा सुरू, खरीप नियोजनाचा काळ.
+चुकीच्या हंगामाची शिफारस कधीही करायची नाही.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+मराठवाड्यातील प्रमुख वाण (VNMKV परभणी):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+सोयाबीन: MACS-1281, JS-335, KDS-726
+कापूस: NBH-44, NHH-44 Bt, RCH-2 Bt
+तूर: BDN-711 (मराठवाड्यासाठी सर्वोत्तम), BSMR-736
+गहू: NIAW-34, HD-2781
+हरभरा: Vishal (JAKI-9218), Phule Vikram`
         },
         ...history.map(h => ({
           role: h.role === "user" ? "user" : "assistant",
-          content: h.text
-        })),
+          content: h.text || h.content || ""
+        })).filter(h => h.content.trim() !== ""),
         { role: "user", content: userMessage }
       ]
     });
@@ -108,20 +135,39 @@ IMPORTANT:
 
   } catch (err) {
     console.error("CHAT ERROR:", err.message);
-    return res.status(500).json({
-      reply: "Server error. Check your API key in .env file."
-    });
+    if (err.status === 401) {
+      return res.status(500).json({ reply: "API key चुकीची आहे. Admin ला सांगा." });
+    }
+    if (err.status === 429) {
+      return res.status(429).json({ reply: "आत्ता खूप जण वापरत आहेत. एक मिनिट थांबा." });
+    }
+    return res.status(500).json({ reply: "तांत्रिक अडचण आली. पुन्हा प्रयत्न करा." });
   }
 });
 
-app.listen(5000, () => {
-  console.log("✅ Krushiverse backend running on port 5000");
+app.post("/api/feedback", async (req, res) => {
+  try {
+    const { feedbackType, messageText, aiReply, farmerProfile } = req.body;
+    console.log("FEEDBACK:", {
+      type: feedbackType,
+      district: farmerProfile?.district || "unknown",
+      question: messageText?.substring(0, 80),
+      timestamp: new Date().toISOString()
+    });
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.json({ ok: false });
+  }
 });
 
-// Keep backend awake
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Krushiverse backend चालू — port ${PORT}`);
+});
+
 setInterval(() => {
-  https.get("https://krushiverse-backend-pnw1.onrender.com/api/health", (res) => {
-    console.log("Keep alive ping sent");
+  https.get("https://ai-farming-frontend-production.up.railway.app/api/health", (res) => {
+    console.log("🏓 Keep-alive ping sent");
   }).on("error", (err) => {
     console.log("Ping error:", err.message);
   });
