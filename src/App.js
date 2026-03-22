@@ -3,12 +3,11 @@ import React, { useState, useRef, useEffect } from "react";
 const BACKEND = "https://ai-farming-frontend-production.up.railway.app";
 
 const LANGUAGES = [
-  { code: "mr-IN", label: "मराठी", flag: "🌾" },
-  { code: "hi-IN", label: "हिंदी", flag: "🇮🇳" },
-  { code: "en-US", label: "English", flag: "🌍" }
+  { code: "mr-IN", label: "मराठी", flag: "🌾", desc: "Marathi" },
+  { code: "hi-IN", label: "हिंदी", flag: "🇮🇳", desc: "Hindi" },
+  { code: "en-US", label: "English", flag: "🌍", desc: "English" }
 ];
 
-// All UI text per language
 const UI = {
   "mr-IN": {
     appSubtitle: "AI शेती सहाय्यक",
@@ -30,6 +29,9 @@ const UI = {
     startBtn: "सुरू करा →",
     connError: "⏳ कनेक्शन एरर. पुन्हा प्रयत्न करा.",
     voiceHint: "🎤 बोलून विचारा किंवा टाइप करा",
+    chooseLang: "भाषा निवडा",
+    chooseDesc: "तुम्हाला कोणत्या भाषेत बोलायचे आहे?",
+    continueBtn: "पुढे जा →",
     suggestions: [
       { emoji: "🌾", text: "या हंगामात कोणते पीक घ्यायचे?" },
       { emoji: "🌱", text: "सोयाबीनसाठी कोणती जात चांगली?" },
@@ -59,6 +61,8 @@ const UI = {
     startBtn: "शुरू करें →",
     connError: "⏳ कनेक्शन एरर. फिर से कोशिश करें.",
     voiceHint: "🎤 बोलकर पूछें या टाइप करें",
+    chooseDesc: "आप किस भाषा में बात करना चाहते हैं?",
+    continueBtn: "आगे बढ़ें →",
     suggestions: [
       { emoji: "🌾", text: "इस मौसम में कौन सी फसल लगाएं?" },
       { emoji: "🌱", text: "सोयाबीन के लिए कौन सी किस्म अच्छी है?" },
@@ -88,6 +92,8 @@ const UI = {
     startBtn: "Get Started →",
     connError: "⏳ Connection error. Please try again.",
     voiceHint: "🎤 Speak or type your question",
+    chooseDesc: "Which language do you prefer?",
+    continueBtn: "Continue →",
     suggestions: [
       { emoji: "🌾", text: "Which crop should I grow this season?" },
       { emoji: "🌱", text: "Which soybean variety is best?" },
@@ -99,6 +105,89 @@ const UI = {
   }
 };
 
+// SCREEN 1: Language Picker
+function LanguageScreen({ onSelect }) {
+  const [selected, setSelected] = useState("mr-IN");
+  return (
+    <div style={{
+      position: "fixed", inset: 0,
+      background: "linear-gradient(135deg, #1b5e20, #2e7d32)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 2000, padding: 24
+    }}>
+      <div style={{
+        background: "white", borderRadius: 24, padding: "32px 24px",
+        width: "100%", maxWidth: 360,
+        boxShadow: "0 16px 48px rgba(0,0,0,0.3)"
+      }}>
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{ fontSize: 56, marginBottom: 12 }}>🌾</div>
+          <h1 style={{ margin: "0 0 6px", color: "#1b5e20", fontSize: 22, fontWeight: "700" }}>
+            Krushiverse
+          </h1>
+          <p style={{ color: "#888", fontSize: 14, margin: 0 }}>
+            AI Farming Assistant
+          </p>
+        </div>
+
+        <p style={{ textAlign: "center", color: "#555", fontSize: 15, marginBottom: 20, fontWeight: "500" }}>
+          Choose your language / भाषा निवडा / भाषा चुनें
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
+          {LANGUAGES.map(lang => (
+            <button
+              key={lang.code}
+              onClick={() => setSelected(lang.code)}
+              style={{
+                display: "flex", alignItems: "center", gap: 14,
+                padding: "14px 18px", borderRadius: 14,
+                border: selected === lang.code ? "2.5px solid #2e7d32" : "1.5px solid #e0e0e0",
+                background: selected === lang.code ? "#f0faf0" : "white",
+                cursor: "pointer", textAlign: "left",
+                transition: "all 0.15s",
+                fontFamily: "'Segoe UI', Arial, sans-serif"
+              }}
+            >
+              <span style={{ fontSize: 28 }}>{lang.flag}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontSize: 16, fontWeight: "600",
+                  color: selected === lang.code ? "#1b5e20" : "#333"
+                }}>
+                  {lang.label}
+                </div>
+                <div style={{ fontSize: 12, color: "#888" }}>{lang.desc}</div>
+              </div>
+              {selected === lang.code && (
+                <div style={{
+                  width: 22, height: 22, borderRadius: "50%",
+                  background: "#2e7d32", display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  color: "white", fontSize: 13, fontWeight: "bold"
+                }}>✓</div>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => onSelect(LANGUAGES.find(l => l.code === selected))}
+          style={{
+            width: "100%", padding: "14px", borderRadius: 14, border: "none",
+            background: "linear-gradient(135deg, #1b5e20, #2e7d32)",
+            color: "white", fontSize: 16, fontWeight: "600",
+            cursor: "pointer", fontFamily: "'Segoe UI', Arial, sans-serif"
+          }}
+        >
+          {UI[selected].continueBtn}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// SCREEN 2: Profile Form
 function ProfileModal({ onSave, ui }) {
   const [form, setForm] = useState({
     name: "", district: "", taluka: "", landAcres: "",
@@ -117,7 +206,8 @@ function ProfileModal({ onSave, ui }) {
   return (
     <div style={{
       position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
-      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 1000, padding: 16
     }}>
       <div style={{
         background: "white", borderRadius: 20, padding: "24px 20px",
@@ -215,6 +305,7 @@ function ProfileModal({ onSave, ui }) {
   );
 }
 
+// MAIN APP
 export default function App() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
@@ -222,13 +313,13 @@ export default function App() {
   const [listening, setListening] = useState(false);
   const [speakingIndex, setSpeakingIndex] = useState(null);
   const [farmerProfile, setFarmerProfile] = useState(null);
-  const [language, setLanguage] = useState(LANGUAGES[0]);
+  const [language, setLanguage] = useState(null); // null = show language screen
   const [showLangPicker, setShowLangPicker] = useState(false);
   const bottomRef = useRef(null);
   const recognitionRef = useRef(null);
   const finalTranscriptRef = useRef("");
 
-  const ui = UI[language.code];
+  const ui = language ? UI[language.code] : UI["mr-IN"];
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -255,11 +346,12 @@ export default function App() {
       .replace(/\n+/g, ". ").replace(/[:]/g, "").replace(/\s+/g, " ").trim();
     const utterance = new SpeechSynthesisUtterance(cleanText);
     const voices = window.speechSynthesis.getVoices();
-    const langVoice = voices.find(v => v.lang === language.code);
+    const langCode = language?.code || "mr-IN";
+    const langVoice = voices.find(v => v.lang === langCode);
     const fallback = voices.find(v => v.lang === "hi-IN");
-    if (langVoice) { utterance.voice = langVoice; utterance.lang = language.code; }
+    if (langVoice) { utterance.voice = langVoice; utterance.lang = langCode; }
     else if (fallback) { utterance.voice = fallback; utterance.lang = "hi-IN"; }
-    else { utterance.lang = language.code; }
+    else { utterance.lang = langCode; }
     utterance.rate = 0.85; utterance.pitch = 1.1; utterance.volume = 1;
     utterance.onstart = () => setSpeakingIndex(index);
     utterance.onend = () => setSpeakingIndex(null);
@@ -273,7 +365,7 @@ export default function App() {
     const currentText = message.trim() ? message.trim() + " " : "";
     finalTranscriptRef.current = currentText;
     const recognition = new SR();
-    recognition.lang = language.code;
+    recognition.lang = language?.code || "mr-IN";
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.onstart = () => setListening(true);
@@ -320,7 +412,11 @@ export default function App() {
       const timeout = setTimeout(() => controller.abort(), 60000);
       const res = await fetch(`${BACKEND}/api/chat`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msgText, history: chat, farmerProfile: farmerProfile || {}, language: language.code }),
+        body: JSON.stringify({
+          message: msgText, history: chat,
+          farmerProfile: farmerProfile || {},
+          language: language?.code || "mr-IN"
+        }),
         signal: controller.signal
       });
       clearTimeout(timeout);
@@ -344,7 +440,10 @@ export default function App() {
     try {
       await fetch(`${BACKEND}/api/feedback`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ feedbackType: type, messageText: chat[index]?.userMsg || "", aiReply: chat[index]?.text || "", farmerProfile: farmerProfile || {} })
+        body: JSON.stringify({
+          feedbackType: type, messageText: chat[index]?.userMsg || "",
+          aiReply: chat[index]?.text || "", farmerProfile: farmerProfile || {}
+        })
       });
     } catch (_) {}
   };
@@ -360,10 +459,23 @@ export default function App() {
     );
   };
 
+  // SCREEN 1: Language selection
+  if (!language) {
+    return <LanguageScreen onSelect={(lang) => { setLanguage(lang); }} />;
+  }
+
+  // SCREEN 2: Profile form
+  if (farmerProfile === null) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: 640, margin: "0 auto", fontFamily: "'Segoe UI', Arial, sans-serif", background: "#f0f4f0" }}>
+        <ProfileModal onSave={(p) => setFarmerProfile(p)} ui={ui} />
+      </div>
+    );
+  }
+
+  // SCREEN 3: Chat
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: 640, margin: "0 auto", fontFamily: "'Segoe UI', Arial, sans-serif", background: "#f0f4f0" }}>
-
-      {farmerProfile === null && <ProfileModal onSave={(p) => setFarmerProfile(p)} ui={ui} />}
 
       {/* HEADER */}
       <div style={{ background: "linear-gradient(135deg, #1b5e20, #2e7d32)", color: "white", padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
@@ -376,7 +488,7 @@ export default function App() {
           </div>
         </div>
         <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
-          {/* Language picker */}
+          {/* Language switcher in header */}
           <div style={{ position: "relative" }}>
             <button onClick={() => setShowLangPicker(!showLangPicker)} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "white", padding: "5px 10px", borderRadius: 16, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
               {language.flag} {language.label}
@@ -407,12 +519,14 @@ export default function App() {
             <div style={{ textAlign: "center", padding: "24px 16px 20px", background: "white", borderRadius: 16, marginBottom: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
               <div style={{ fontSize: 48 }}>🌱</div>
               <h2 style={{ margin: "10px 0 4px", color: "#1b5e20", fontSize: 18 }}>
-                {farmerProfile?.name ? `${language.code === "en-US" ? "Hello" : language.code === "hi-IN" ? "नमस्ते" : "नमस्ते"}, ${farmerProfile.name}!` : ui.greeting}
+                {farmerProfile?.name ? `${language.code === "en-US" ? "Hello" : "नमस्ते"}, ${farmerProfile.name}!` : ui.greeting}
               </h2>
               <p style={{ color: "#666", fontSize: 14, margin: "0 0 6px" }}>{ui.subgreeting}</p>
               {farmerProfile?.district && (
                 <p style={{ color: "#2e7d32", fontSize: 13, margin: "0 0 4px", fontWeight: "500" }}>
-                  📍 {farmerProfile.district}{farmerProfile.irrigationType ? ` · ${farmerProfile.irrigationType}` : ""}{farmerProfile.landAcres ? ` · ${farmerProfile.landAcres} ${language.code === "en-US" ? "acres" : "एकर"}` : ""}
+                  📍 {farmerProfile.district}
+                  {farmerProfile.irrigationType ? ` · ${farmerProfile.irrigationType}` : ""}
+                  {farmerProfile.landAcres ? ` · ${farmerProfile.landAcres} ${language.code === "en-US" ? "acres" : "एकर"}` : ""}
                 </p>
               )}
               <p style={{ color: "#999", fontSize: 12, margin: 0 }}>{ui.voiceHint}</p>
