@@ -39,7 +39,23 @@ const UI = {
       { emoji: "💧", text: "ठिबक सिंचनाचे फायदे काय आहेत?" },
       { emoji: "🧪", text: "जमिनीची माती परीक्षा कशी करावी?" },
       { emoji: "💰", text: "सोयाबीन विकायला कधी जावे?" },
-    ]
+    ],
+    profile: {
+      title: "आपली माहिती द्या",
+      subtitle: "चांगला सल्ला मिळण्यासाठी — सर्व ऐच्छिक आहे",
+      name: "तुमचे नाव", namePh: "उदा: रामराव पाटील",
+      district: "जिल्हा *", districtPh: "जिल्हा निवडा",
+      taluka: "तालुका", talukaPh: "उदा: गेवराई",
+      land: "जमीन (एकरात)", landPh: "उदा: 5",
+      soil: "माती प्रकार", soilPh: "माती प्रकार निवडा",
+      irrigation: "सिंचन प्रकार", irrigationPh: "सिंचन प्रकार निवडा",
+      crop: "सध्याचे / नियोजित पीक", cropPh: "उदा: सोयाबीन",
+      goal: "तुमची प्राथमिकता", goalPh: "प्राथमिकता निवडा",
+      soilOptions: ["काळी माती (Heavy Black Soil)", "मध्यम काळी माती", "हलकी काळी माती", "लाल माती", "वालुकामय माती", "मुरमाड माती"],
+      irrigationOptions: ["कोरडवाहू (फक्त पाऊस)", "बोरवेल", "विहीर", "कालवा / नहर", "ठिबक सिंचन", "तुषार सिंचन"],
+      goalOptions: ["जास्त नफा (High Profit)", "स्थिर उत्पन्न (Stable Income)", "कमी खर्च (Low Cost)", "पाण्याची बचत (Water Saving)"],
+      marathwada: "मराठवाडा", vidarbha: "विदर्भ", westMH: "पश्चिम महाराष्ट्र", konkan: "कोकण",
+    }
   },
   "hi-IN": {
     appSubtitle: "AI कृषि सहायक",
@@ -70,7 +86,23 @@ const UI = {
       { emoji: "💧", text: "ड्रिप सिंचाई के क्या फायदे हैं?" },
       { emoji: "🧪", text: "मिट्टी की जांच कैसे करें?" },
       { emoji: "💰", text: "सोयाबीन बेचने का सही समय कब है?" },
-    ]
+    ],
+    profile: {
+      title: "अपनी जानकारी दें",
+      subtitle: "बेहतर सलाह के लिए — सब वैकल्पिक है",
+      name: "आपका नाम", namePh: "उदा: रामराव पाटील",
+      district: "जिला *", districtPh: "जिला चुनें",
+      taluka: "तालुका", talukaPh: "उदा: गेवराई",
+      land: "जमीन (एकड़ में)", landPh: "उदा: 5",
+      soil: "मिट्टी का प्रकार", soilPh: "मिट्टी का प्रकार चुनें",
+      irrigation: "सिंचाई का प्रकार", irrigationPh: "सिंचाई का प्रकार चुनें",
+      crop: "वर्तमान / नियोजित फसल", cropPh: "उदा: सोयाबीन",
+      goal: "आपकी प्राथमिकता", goalPh: "प्राथमिकता चुनें",
+      soilOptions: ["काली मिट्टी (Heavy Black Soil)", "मध्यम काली मिट्टी", "हल्की काली मिट्टी", "लाल मिट्टी", "बलुई मिट्टी", "मुरम मिट्टी"],
+      irrigationOptions: ["बारानी (केवल बारिश)", "बोरवेल", "कुआँ", "नहर", "ड्रिप सिंचाई", "स्प्रिंकलर सिंचाई"],
+      goalOptions: ["अधिक मुनाफा (High Profit)", "स्थिर आय (Stable Income)", "कम खर्च (Low Cost)", "पानी की बचत (Water Saving)"],
+      marathwada: "मराठवाड़ा", vidarbha: "विदर्भ", westMH: "पश्चिम महाराष्ट्र", konkan: "कोंकण",
+    }
   },
   "en-US": {
     appSubtitle: "AI Farming Assistant",
@@ -101,7 +133,23 @@ const UI = {
       { emoji: "💧", text: "What are the benefits of drip irrigation?" },
       { emoji: "🧪", text: "How to test soil health?" },
       { emoji: "💰", text: "When is the best time to sell soybean?" },
-    ]
+    ],
+    profile: {
+      title: "Tell us about yourself",
+      subtitle: "For better advice — all optional",
+      name: "Your Name", namePh: "e.g. Ramrao Patil",
+      district: "District *", districtPh: "Select district",
+      taluka: "Taluka", talukaPh: "e.g. Gevrai",
+      land: "Land (in acres)", landPh: "e.g. 5",
+      soil: "Soil Type", soilPh: "Select soil type",
+      irrigation: "Irrigation Type", irrigationPh: "Select irrigation type",
+      crop: "Current / Planned Crop", cropPh: "e.g. Soybean",
+      goal: "Your Priority", goalPh: "Select priority",
+      soilOptions: ["Black Cotton Soil (Heavy)", "Medium Black Soil", "Light Black Soil", "Red Soil", "Sandy Soil", "Gravelly Soil"],
+      irrigationOptions: ["Rainfed (No irrigation)", "Borewell", "Well", "Canal", "Drip Irrigation", "Sprinkler Irrigation"],
+      goalOptions: ["High Profit", "Stable Income", "Low Cost", "Water Saving"],
+      marathwada: "Marathwada", vidarbha: "Vidarbha", westMH: "West Maharashtra", konkan: "Konkan",
+    }
   }
 };
 
@@ -278,6 +326,7 @@ function LanguageScreen({ onSelect }) {
         <line x1="320" y1="622" x2="464" y2="622" stroke="#8D6E63" strokeWidth="2.5"/>
         <line x1="320" y1="632" x2="464" y2="632" stroke="#8D6E63" strokeWidth="2"/>
       </svg>
+
       <div style={{
         background: "white", borderRadius: 24, padding: "32px 24px",
         width: "100%", maxWidth: 360, position: "relative", zIndex: 10,
@@ -356,14 +405,20 @@ function ProfileModal({ onSave, ui }) {
     name: "", district: "", taluka: "", landAcres: "",
     soilType: "", irrigationType: "", currentCrop: "", goal: ""
   });
+
+  const p = ui.profile;
   const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
+
   const inputStyle = {
     width: "100%", padding: "10px 12px", borderRadius: 10,
     border: "1.5px solid #c8e6c9", fontSize: 14, outline: "none",
     background: "white", color: "#333", boxSizing: "border-box",
     fontFamily: "'Segoe UI', Arial, sans-serif"
   };
-  const labelStyle = { fontSize: 13, color: "#2e7d32", fontWeight: "600", marginBottom: 4, display: "block" };
+  const labelStyle = {
+    fontSize: 13, color: "#2e7d32", fontWeight: "600",
+    marginBottom: 4, display: "block"
+  };
   const rowStyle = { marginBottom: 14 };
 
   return (
@@ -379,74 +434,93 @@ function ProfileModal({ onSave, ui }) {
       }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <div style={{ fontSize: 40 }}>🌾</div>
-          <h2 style={{ margin: "8px 0 4px", color: "#1b5e20", fontSize: 18 }}>आपली माहिती द्या</h2>
-          <p style={{ color: "#888", fontSize: 13, margin: 0 }}>चांगला सल्ला मिळण्यासाठी — सर्व ऐच्छिक आहे</p>
+          <h2 style={{ margin: "8px 0 4px", color: "#1b5e20", fontSize: 18 }}>{p.title}</h2>
+          <p style={{ color: "#888", fontSize: 13, margin: 0 }}>{p.subtitle}</p>
         </div>
 
         <div style={rowStyle}>
-          <label style={labelStyle}>तुमचे नाव</label>
-          <input style={inputStyle} placeholder="उदा: रामराव पाटील" value={form.name} onChange={e => update("name", e.target.value)} />
+          <label style={labelStyle}>{p.name}</label>
+          <input style={inputStyle} placeholder={p.namePh} value={form.name} onChange={e => update("name", e.target.value)} />
         </div>
+
         <div style={rowStyle}>
-          <label style={labelStyle}>जिल्हा *</label>
+          <label style={labelStyle}>{p.district}</label>
           <select style={inputStyle} value={form.district} onChange={e => update("district", e.target.value)}>
-            <option value="">जिल्हा निवडा</option>
-            <optgroup label="मराठवाडा">
+            <option value="">{p.districtPh}</option>
+            <optgroup label={p.marathwada}>
               <option>औरंगाबाद (छत्रपती संभाजीनगर)</option>
-              <option>बीड</option><option>नांदेड</option><option>लातूर</option>
-              <option>उस्मानाबाद (धाराशिव)</option><option>परभणी</option>
-              <option>हिंगोली</option><option>जालना</option>
+              <option>बीड</option>
+              <option>नांदेड</option>
+              <option>लातूर</option>
+              <option>उस्मानाबाद (धाराशिव)</option>
+              <option>परभणी</option>
+              <option>हिंगोली</option>
+              <option>जालना</option>
             </optgroup>
-            <optgroup label="विदर्भ">
-              <option>नागपूर</option><option>अमरावती</option><option>अकोला</option>
-              <option>यवतमाळ</option><option>वर्धा</option><option>बुलढाणा</option><option>वाशीम</option>
+            <optgroup label={p.vidarbha}>
+              <option>नागपूर</option>
+              <option>अमरावती</option>
+              <option>अकोला</option>
+              <option>यवतमाळ</option>
+              <option>वर्धा</option>
+              <option>बुलढाणा</option>
+              <option>वाशीम</option>
             </optgroup>
-            <optgroup label="पश्चिम महाराष्ट्र">
-              <option>पुणे</option><option>नाशिक</option><option>सोलापूर</option>
-              <option>सातारा</option><option>सांगली</option><option>कोल्हापूर</option><option>अहमदनगर</option>
+            <optgroup label={p.westMH}>
+              <option>पुणे</option>
+              <option>नाशिक</option>
+              <option>सोलापूर</option>
+              <option>सातारा</option>
+              <option>सांगली</option>
+              <option>कोल्हापूर</option>
+              <option>अहमदनगर</option>
             </optgroup>
-            <optgroup label="कोकण">
-              <option>मुंबई</option><option>रत्नागिरी</option><option>रायगड</option>
-              <option>सिंधुदुर्ग</option><option>ठाणे</option>
+            <optgroup label={p.konkan}>
+              <option>मुंबई</option>
+              <option>रत्नागिरी</option>
+              <option>रायगड</option>
+              <option>सिंधुदुर्ग</option>
+              <option>ठाणे</option>
             </optgroup>
           </select>
         </div>
+
         <div style={rowStyle}>
-          <label style={labelStyle}>तालुका</label>
-          <input style={inputStyle} placeholder="उदा: गेवराई" value={form.taluka} onChange={e => update("taluka", e.target.value)} />
+          <label style={labelStyle}>{p.taluka}</label>
+          <input style={inputStyle} placeholder={p.talukaPh} value={form.taluka} onChange={e => update("taluka", e.target.value)} />
         </div>
+
         <div style={rowStyle}>
-          <label style={labelStyle}>जमीन (एकरात)</label>
-          <input style={inputStyle} type="number" placeholder="उदा: 5" value={form.landAcres} onChange={e => update("landAcres", e.target.value)} />
+          <label style={labelStyle}>{p.land}</label>
+          <input style={inputStyle} type="number" placeholder={p.landPh} value={form.landAcres} onChange={e => update("landAcres", e.target.value)} />
         </div>
+
         <div style={rowStyle}>
-          <label style={labelStyle}>माती प्रकार</label>
+          <label style={labelStyle}>{p.soil}</label>
           <select style={inputStyle} value={form.soilType} onChange={e => update("soilType", e.target.value)}>
-            <option value="">माती प्रकार निवडा</option>
-            <option>काळी माती (Heavy Black Soil)</option><option>मध्यम काळी माती</option>
-            <option>हलकी काळी माती</option><option>लाल माती</option>
-            <option>वालुकामय माती</option><option>मुरमाड माती</option>
+            <option value="">{p.soilPh}</option>
+            {p.soilOptions.map(o => <option key={o}>{o}</option>)}
           </select>
         </div>
+
         <div style={rowStyle}>
-          <label style={labelStyle}>सिंचन प्रकार</label>
+          <label style={labelStyle}>{p.irrigation}</label>
           <select style={inputStyle} value={form.irrigationType} onChange={e => update("irrigationType", e.target.value)}>
-            <option value="">सिंचन प्रकार निवडा</option>
-            <option>कोरडवाहू (फक्त पाऊस)</option><option>बोरवेल</option>
-            <option>विहीर</option><option>कालवा / नहर</option>
-            <option>ठिबक सिंचन</option><option>तुषार सिंचन</option>
+            <option value="">{p.irrigationPh}</option>
+            {p.irrigationOptions.map(o => <option key={o}>{o}</option>)}
           </select>
         </div>
+
         <div style={rowStyle}>
-          <label style={labelStyle}>सध्याचे / नियोजित पीक</label>
-          <input style={inputStyle} placeholder="उदा: सोयाबीन" value={form.currentCrop} onChange={e => update("currentCrop", e.target.value)} />
+          <label style={labelStyle}>{p.crop}</label>
+          <input style={inputStyle} placeholder={p.cropPh} value={form.currentCrop} onChange={e => update("currentCrop", e.target.value)} />
         </div>
+
         <div style={rowStyle}>
-          <label style={labelStyle}>तुमची प्राथमिकता</label>
+          <label style={labelStyle}>{p.goal}</label>
           <select style={inputStyle} value={form.goal} onChange={e => update("goal", e.target.value)}>
-            <option value="">प्राथमिकता निवडा</option>
-            <option>जास्त नफा (High Profit)</option><option>स्थिर उत्पन्न (Stable Income)</option>
-            <option>कमी खर्च (Low Cost)</option><option>पाण्याची बचत (Water Saving)</option>
+            <option value="">{p.goalPh}</option>
+            {p.goalOptions.map(o => <option key={o}>{o}</option>)}
           </select>
         </div>
 
@@ -476,7 +550,7 @@ export default function App() {
   const [listening, setListening] = useState(false);
   const [speakingIndex, setSpeakingIndex] = useState(null);
   const [farmerProfile, setFarmerProfile] = useState(null);
-  const [language, setLanguage] = useState(null); // null = show language screen
+  const [language, setLanguage] = useState(null);
   const [showLangPicker, setShowLangPicker] = useState(false);
   const bottomRef = useRef(null);
   const recognitionRef = useRef(null);
