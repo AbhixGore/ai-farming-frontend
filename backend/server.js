@@ -53,6 +53,75 @@ try {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SECURITY: PROMPT INJECTION PROTECTION
+// Blocks attempts to override system instructions via user message or profile
+// ─────────────────────────────────────────────────────────────────────────────
+function sanitizeInput(text) {
+  if (!text || typeof text !== "string") return "";
+
+  let clean = text.substring(0, 500);
+
+  // Block classic prompt injection patterns (case-insensitive)
+  const injectionPatterns = [
+    /ignore\s+(all\s+)?(previous|above|prior|system|earlier)\s+(instructions?|prompts?|rules?|constraints?)/gi,
+    /forget\s+(all\s+)?(previous|above|prior|your)\s+(instructions?|prompts?|rules?)/gi,
+    /you\s+are\s+now\s+a?\s*(different|new|another|evil|unrestricted)/gi,
+    /act\s+as\s+(a\s+)?(different|new|unrestricted|evil|jailbroken|dan)/gi,
+    /do\s+anything\s+now/gi,
+    /jailbreak/gi,
+    /pretend\s+(you\s+are|to\s+be)\s+(a\s+)?(different|evil|unrestricted)/gi,
+    /override\s+(your\s+)?(instructions?|rules?|system|constraints?)/gi,
+    /disregard\s+(all\s+)?(previous|your|the)\s+(instructions?|rules?)/gi,
+    /system\s*prompt/gi,
+    /\[system\]/gi,
+    /<<SYS>>/gi,
+    /\[INST\]/gi,
+  ];
+
+  for (const pattern of injectionPatterns) {
+    if (pattern.test(clean)) {
+      console.warn("⚠️  INJECTION ATTEMPT BLOCKED:", clean.substring(0, 120));
+      return null; // null = injection detected
+    }
+  }
+
+  return clean.trim();
+}
+
+// Sanitizes every field in farmerProfile before it enters the system prompt
+function sanitizeProfile(profile) {
+  if (!profile || typeof profile !== "object") return {};
+
+  const allowedFields = ["name", "district", "taluka", "village", "soilType", "irrigationType", "landAcres", "currentCrop", "goal"];
+  const sanitized = {};
+
+  for (const field of allowedFields) {
+    if (profile[field] !== undefined && profile[field] !== null) {
+      // Convert to string, strip characters that can break prompt context
+      let val = String(profile[field]).substring(0, 100);
+      val = val.replace(/[<>\[\]{}\\]/g, "");
+
+      // Run injection check on the field value
+      const checked = sanitizeInput(val);
+      if (checked === null) {
+        // Injection attempt in profile field — skip this field entirely
+        console.warn(`⚠️  INJECTION in profile.${field} — field dropped`);
+        continue;
+      }
+      sanitized[field] = checked;
+    }
+  }
+
+  // landAcres must be a valid number only
+  if (sanitized.landAcres !== undefined) {
+    const num = parseFloat(sanitized.landAcres);
+    sanitized.landAcres = isNaN(num) ? "" : String(num);
+  }
+
+  return sanitized;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SOIL DATABASE — 243 lab reports, 35 villages, Chhatrapati Sambhajinagar district
 // Source: Sanjivani Soil Testing Lab, VNMKV Parbhani, 10/03/2026
 // ─────────────────────────────────────────────────────────────────────────────
@@ -287,18 +356,24 @@ VNMKV परभणी शिफारशी:
 
 app.post("/api/chat", chatLimiter, async (req, res) => {
   try {
-    const userMessage = String(req.body?.message || "").trim();
+    const rawMessage = String(req.body?.message || "").trim();
     const history = Array.isArray(req.body?.history) ? req.body.history : [];
-    const profile = req.body?.farmerProfile || {};
+    const profile = sanitizeProfile(req.body?.farmerProfile || {});
     const selectedLang = req.body?.language || "mr-IN";
 
-    if (!userMessage) {
+    if (!rawMessage) {
       return res.json({ reply: "प्रश्न टाइप करा." });
     }
 
     // Basic message length guard
-    if (userMessage.length > 500) {
+    if (rawMessage.length > 500) {
       return res.json({ reply: "प्रश्न जास्त मोठा आहे. थोडक्यात विचारा." });
+    }
+
+    // Prompt injection check — sanitizeInput returns null if attack detected
+    const userMessage = sanitizeInput(rawMessage);
+    if (userMessage === null) {
+      return res.json({ reply: "हा प्रश्न समजला नाही. शेतीविषयक प्रश्न विचारा." });
     }
 
     if (!groq) {
