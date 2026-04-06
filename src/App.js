@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import ErrorBoundary from "./ErrorBoundary";
 
 const BACKEND = "https://ai-farming-frontend-production.up.railway.app";
 
@@ -701,11 +702,23 @@ export default function App() {
     return <LanguageScreen onSelect={(lang) => { setLanguage(lang); }} />;
   }
 
-  // SCREEN 2: Profile form
+  // SCREEN 2: Profile form — wrapped in ErrorBoundary so a crash here doesn't kill the app
   if (farmerProfile === null) {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: 640, margin: "0 auto", fontFamily: "'Segoe UI', Arial, sans-serif", background: "#f0f4f0" }}>
-        <ProfileModal onSave={(p) => setFarmerProfile(p)} ui={ui} />
+        <ErrorBoundary fallback={
+          <div style={{ padding: 24, textAlign: "center" }}>
+            <p style={{ color: "#c62828", fontSize: 15 }}>⚠️ Profile form could not load.</p>
+            <button
+              onClick={() => setFarmerProfile({})}
+              style={{ marginTop: 12, padding: "10px 24px", background: "#2e7d32", color: "white", border: "none", borderRadius: 10, fontSize: 14, cursor: "pointer" }}
+            >
+              Skip & Continue to Chat
+            </button>
+          </div>
+        }>
+          <ProfileModal onSave={(p) => setFarmerProfile(p)} ui={ui} />
+        </ErrorBoundary>
       </div>
     );
   }
@@ -788,22 +801,26 @@ export default function App() {
                 {msg.text}
               </div>
             </div>
+
+            {/* FEEDBACK BUTTONS — wrapped in ErrorBoundary so a crash here never kills the chat */}
             {msg.role === "ai" && (
-              <div style={{ display: "flex", gap: 6, marginLeft: 38, marginTop: 2, flexWrap: "wrap" }}>
-                <button onClick={() => handleSpeakToggle(index, msg.text)} style={{ background: speakingIndex === index ? "#e8f5e9" : "white", border: speakingIndex === index ? "1px solid #2e7d32" : "1px solid #e0e0e0", borderRadius: 20, padding: "3px 10px", fontSize: 13, cursor: "pointer", color: speakingIndex === index ? "#2e7d32" : "#555", fontFamily: "'Segoe UI', Arial, sans-serif", transition: "all 0.2s" }}>
-                  {speakingIndex === index ? ui.stop : ui.listen}
-                </button>
-                {msg.feedback === "up" ? (
-                  <span style={{ fontSize: 13, color: "#2e7d32", padding: "3px 6px" }}>{ui.thankyou}</span>
-                ) : msg.feedback === "down" ? (
-                  <span style={{ fontSize: 13, color: "#c62828", padding: "3px 6px" }}>{ui.noted}</span>
-                ) : (
-                  <>
-                    <button onClick={() => handleFeedback(index, "up")} style={{ background: "white", border: "1px solid #e0e0e0", borderRadius: 20, padding: "3px 10px", fontSize: 13, cursor: "pointer", color: "#555", fontFamily: "'Segoe UI', Arial, sans-serif" }}>{ui.correct}</button>
-                    <button onClick={() => handleFeedback(index, "down")} style={{ background: "white", border: "1px solid #e0e0e0", borderRadius: 20, padding: "3px 10px", fontSize: 13, cursor: "pointer", color: "#555", fontFamily: "'Segoe UI', Arial, sans-serif" }}>{ui.wrong}</button>
-                  </>
-                )}
-              </div>
+              <ErrorBoundary fallback={null}>
+                <div style={{ display: "flex", gap: 6, marginLeft: 38, marginTop: 2, flexWrap: "wrap" }}>
+                  <button onClick={() => handleSpeakToggle(index, msg.text)} style={{ background: speakingIndex === index ? "#e8f5e9" : "white", border: speakingIndex === index ? "1px solid #2e7d32" : "1px solid #e0e0e0", borderRadius: 20, padding: "3px 10px", fontSize: 13, cursor: "pointer", color: speakingIndex === index ? "#2e7d32" : "#555", fontFamily: "'Segoe UI', Arial, sans-serif", transition: "all 0.2s" }}>
+                    {speakingIndex === index ? ui.stop : ui.listen}
+                  </button>
+                  {msg.feedback === "up" ? (
+                    <span style={{ fontSize: 13, color: "#2e7d32", padding: "3px 6px" }}>{ui.thankyou}</span>
+                  ) : msg.feedback === "down" ? (
+                    <span style={{ fontSize: 13, color: "#c62828", padding: "3px 6px" }}>{ui.noted}</span>
+                  ) : (
+                    <>
+                      <button onClick={() => handleFeedback(index, "up")} style={{ background: "white", border: "1px solid #e0e0e0", borderRadius: 20, padding: "3px 10px", fontSize: 13, cursor: "pointer", color: "#555", fontFamily: "'Segoe UI', Arial, sans-serif" }}>{ui.correct}</button>
+                      <button onClick={() => handleFeedback(index, "down")} style={{ background: "white", border: "1px solid #e0e0e0", borderRadius: 20, padding: "3px 10px", fontSize: 13, cursor: "pointer", color: "#555", fontFamily: "'Segoe UI', Arial, sans-serif" }}>{ui.wrong}</button>
+                    </>
+                  )}
+                </div>
+              </ErrorBoundary>
             )}
           </div>
         ))}

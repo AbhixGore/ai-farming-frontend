@@ -183,15 +183,20 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "Krushiverse backend working 🌾" });
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SAFETY: buildSystemPrompt wrapped in try-catch
+// If soil DB lookup or string building throws for any reason,
+// the chat still works using a safe fallback prompt instead of crashing.
+// ─────────────────────────────────────────────────────────────────────────────
 function buildSystemPrompt(profile, selectedLang, farmerContext) {
-  // FIX 4: only village for lookup — never use taluka as village substitute
-  const village = profile?.village || null;
-  const soilProfile = getSoilProfile(village);
-  // if village not found, fall back to district average (not null)
-  const soilBlock = buildSoilBlock(soilProfile, village, selectedLang);
+  try {
+    const village = profile?.village || null;
+    const soilProfile = getSoilProfile(village);
+    // if village not found, fall back to district average (not null)
+    const soilBlock = buildSoilBlock(soilProfile, village, selectedLang);
 
-  if (selectedLang === "en-US") {
-    return `You are Krushiverse, an AI farming assistant for Maharashtra farmers. Reply in ENGLISH ONLY.
+    if (selectedLang === "en-US") {
+      return `You are Krushiverse, an AI farming assistant for Maharashtra farmers. Reply in ENGLISH ONLY.
 ${farmerContext ? `Farmer profile: ${farmerContext}` : ""}
 ${soilBlock}
 
@@ -208,10 +213,10 @@ Answer style:
 - If unsure: "I'm not sure about this, please visit your nearest KVK or agricultural officer"
 
 Crops: Sugarcane needs heavy irrigation Oct-Mar. Cotton Kharif June-July. Soybean Kharif. Wheat Rabi Nov-Dec. Current: March 2026, pre-Kharif planning.`;
-  }
+    }
 
-  if (selectedLang === "hi-IN") {
-    return `आप Krushiverse हैं — महाराष्ट्र के किसानों के लिए AI कृषि सहायक। सिर्फ सरल हिंदी में जवाब दें।
+    if (selectedLang === "hi-IN") {
+      return `आप Krushiverse हैं — महाराष्ट्र के किसानों के लिए AI कृषि सहायक। सिर्फ सरल हिंदी में जवाब दें।
 ${farmerContext ? `किसान की जानकारी: ${farmerContext}` : ""}
 ${soilBlock}
 
@@ -223,10 +228,10 @@ ${soilBlock}
 
 जवाब: 3 वाक्य max। खाद की सलाह में असली मिट्टी के नंबर इस्तेमाल करें।
 अगर पक्का नहीं: "मुझे पक्का नहीं पता, अपने नजदीकी KVK से पूछें।"`;
-  }
+    }
 
-  // Default: Marathi
-  return `तू Krushiverse आहेस — महाराष्ट्रातील शेतकऱ्यांसाठी AI शेती सहाय्यक.
+    // Default: Marathi
+    return `तू Krushiverse आहेस — महाराष्ट्रातील शेतकऱ्यांसाठी AI शेती सहाय्यक.
 फक्त सोपी मराठी वापर — हिंदी एकही शब्द नाही.
 ${farmerContext ? `शेतकऱ्याची माहिती: ${farmerContext}` : ""}
 ${soilBlock}
@@ -270,6 +275,14 @@ VNMKV परभणी शिफारशी:
 तूर: BDN-711 (मराठवाड्यासाठी सर्वोत्तम) | पेरणी: 15 जून - 15 जुलै
 गहू: NIAW-34, HD-2781 | पेरणी: 1-15 नोव्हेंबर
 झिंक: 25 kg ZnSO4/hectare — पेरणीपूर्वी जमिनीत मिसळावे`;
+
+  } catch (err) {
+    // If anything above throws, log it and return a safe minimal prompt
+    // so the /api/chat route still works instead of crashing
+    console.error("buildSystemPrompt error:", err.message);
+    const langLabel = selectedLang === "en-US" ? "English" : selectedLang === "hi-IN" ? "Hindi" : "Marathi";
+    return `You are Krushiverse, an AI farming assistant for Maharashtra farmers. Answer all farming questions helpfully in ${langLabel}. Never recommend harmful chemicals.`;
+  }
 }
 
 app.post("/api/chat", chatLimiter, async (req, res) => {
