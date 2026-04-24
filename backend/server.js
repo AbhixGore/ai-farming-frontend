@@ -459,7 +459,7 @@ app.listen(PORT, "0.0.0.0", () => {
 });
 
 setInterval(() => {
-  https.get("https://ai-farming-frontend-production.up.railway.app/api/health", (res) => {
+  https.get("https://krushiverse-backend-pnw1.onrender.com/api/health", (res) => {
     console.log("🏓 Keep-alive ping sent");
   }).on("error", (err) => {
     console.log("Ping error:", err.message);

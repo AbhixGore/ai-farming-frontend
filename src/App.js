@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import ErrorBoundary from "./ErrorBoundary";
 
-const BACKEND = "https://ai-farming-frontend-production.up.railway.app";
+const BACKEND = "https://krushiverse-backend-pnw1.onrender.com";
 
 const LANGUAGES = [
   { code: "mr-IN", label: "मराठी", flag: "🌾", desc: "Marathi" },
