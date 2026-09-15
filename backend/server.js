@@ -253,6 +253,36 @@ app.get("/api/health", (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// FIX 6: LIVE DATE/SEASON — computed fresh on every request, never hardcoded
+// Kharif: June–October | Rabi: November–February | Summer/pre-Kharif: March–May
+// ─────────────────────────────────────────────────────────────────────────────
+function getSeasonInfo(lang) {
+  const now = new Date();
+  const month = now.getMonth() + 1; // 1-12
+  const year = now.getFullYear();
+
+  const monthNamesEn = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const monthNamesMr = ["जानेवारी","फेब्रुवारी","मार्च","एप्रिल","मे","जून","जुलै","ऑगस्ट","सप्टेंबर","ऑक्टोबर","नोव्हेंबर","डिसेंबर"];
+
+  let seasonEn, seasonMr;
+  if (month >= 6 && month <= 10) {
+    seasonEn = "Kharif season (active growing)";
+    seasonMr = "खरीप हंगाम सुरू आहे";
+  } else if (month === 11 || month === 12 || month <= 2) {
+    seasonEn = "Rabi season (active growing)";
+    seasonMr = "रब्बी हंगाम सुरू आहे";
+  } else {
+    seasonEn = "Summer season, pre-Kharif planning period";
+    seasonMr = "उन्हाळी हंगाम — खरीप नियोजन काळ";
+  }
+
+  if (lang === "en-US") {
+    return `Current date: ${monthNamesEn[month - 1]} ${year}. ${seasonEn}.`;
+  }
+  return `सध्याची तारीख: ${monthNamesMr[month - 1]} ${year}. ${seasonMr}.`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SAFETY: buildSystemPrompt wrapped in try-catch
 // If soil DB lookup or string building throws for any reason,
 // the chat still works using a safe fallback prompt instead of crashing.
@@ -281,7 +311,7 @@ Answer style:
 - When recommending fertilizer, use the actual soil numbers above
 - If unsure: "I'm not sure about this, please visit your nearest KVK or agricultural officer"
 
-Crops: Sugarcane needs heavy irrigation Oct-Mar. Cotton Kharif June-July. Soybean Kharif. Wheat Rabi Nov-Dec. Current: March 2026, pre-Kharif planning.`;
+Crops: Sugarcane needs heavy irrigation Oct-Mar. Cotton Kharif June-July. Soybean Kharif. Wheat Rabi Nov-Dec. ${getSeasonInfo("en-US")}`;
     }
 
     if (selectedLang === "hi-IN") {
@@ -334,7 +364,7 @@ ${soilBlock}
 खरीप (जून-ऑक्टोबर): सोयाबीन, कापूस, तूर, मूग, उडीद, भुईमूग
 रब्बी (नोव्हेंबर-मार्च): गहू, हरभरा, कांदा, लसूण, करडई
 उन्हाळी (मार्च-जून): कलिंगड, काकडी, भाजीपाला (सिंचन असल्यास)
-सध्या मार्च 2026 — उन्हाळा सुरू, खरीप नियोजन काळ
+${getSeasonInfo("mr-IN")}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 VNMKV परभणी शिफारशी:
