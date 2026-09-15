@@ -154,6 +154,46 @@ const UI = {
   }
 };
 
+// DISTRICT TRANSLATIONS — canonical code + name in each language
+// This fixes the bug where district names always showed in Marathi
+// regardless of which language the user selected.
+const DISTRICTS = [
+  { code: "aurangabad",  region: "marathwada", mr: "औरंगाबाद (छत्रपती संभाजीनगर)", hi: "औरंगाबाद (छत्रपती संभाजीनगर)", en: "Aurangabad (Chhatrapati Sambhajinagar)" },
+  { code: "beed",        region: "marathwada", mr: "बीड",     hi: "बीड",     en: "Beed" },
+  { code: "nanded",      region: "marathwada", mr: "नांदेड",   hi: "नांदेड",   en: "Nanded" },
+  { code: "latur",       region: "marathwada", mr: "लातूर",   hi: "लातूर",   en: "Latur" },
+  { code: "osmanabad",   region: "marathwada", mr: "उस्मानाबाद (धाराशिव)", hi: "उस्मानाबाद (धाराशिव)", en: "Osmanabad (Dharashiv)" },
+  { code: "parbhani",    region: "marathwada", mr: "परभणी",   hi: "परभणी",   en: "Parbhani" },
+  { code: "hingoli",     region: "marathwada", mr: "हिंगोली",  hi: "हिंगोली",  en: "Hingoli" },
+  { code: "jalna",       region: "marathwada", mr: "जालना",   hi: "जालना",   en: "Jalna" },
+  { code: "nagpur",      region: "vidarbha",   mr: "नागपूर",   hi: "नागपूर",   en: "Nagpur" },
+  { code: "amravati",    region: "vidarbha",   mr: "अमरावती",  hi: "अमरावती",  en: "Amravati" },
+  { code: "akola",       region: "vidarbha",   mr: "अकोला",   hi: "अकोला",   en: "Akola" },
+  { code: "yavatmal",    region: "vidarbha",   mr: "यवतमाळ",   hi: "यवतमाळ",   en: "Yavatmal" },
+  { code: "wardha",      region: "vidarbha",   mr: "वर्धा",    hi: "वर्धा",    en: "Wardha" },
+  { code: "buldhana",    region: "vidarbha",   mr: "बुलढाणा",  hi: "बुलढाणा",  en: "Buldhana" },
+  { code: "washim",      region: "vidarbha",   mr: "वाशीम",   hi: "वाशीम",   en: "Washim" },
+  { code: "pune",        region: "westMH",     mr: "पुणे",    hi: "पुणे",    en: "Pune" },
+  { code: "nashik",      region: "westMH",     mr: "नाशिक",   hi: "नाशिक",   en: "Nashik" },
+  { code: "solapur",     region: "westMH",     mr: "सोलापूर",  hi: "सोलापूर",  en: "Solapur" },
+  { code: "satara",      region: "westMH",     mr: "सातारा",   hi: "सातारा",   en: "Satara" },
+  { code: "sangli",      region: "westMH",     mr: "सांगली",   hi: "सांगली",   en: "Sangli" },
+  { code: "kolhapur",    region: "westMH",     mr: "कोल्हापूर", hi: "कोल्हापूर", en: "Kolhapur" },
+  { code: "ahmednagar",  region: "westMH",     mr: "अहमदनगर",  hi: "अहमदनगर",  en: "Ahmednagar" },
+  { code: "mumbai",      region: "konkan",     mr: "मुंबई",    hi: "मुंबई",    en: "Mumbai" },
+  { code: "ratnagiri",   region: "konkan",     mr: "रत्नागिरी", hi: "रत्नागिरी", en: "Ratnagiri" },
+  { code: "raigad",      region: "konkan",     mr: "रायगड",   hi: "रायगड",   en: "Raigad" },
+  { code: "sindhudurg",  region: "konkan",     mr: "सिंधुदुर्ग", hi: "सिंधुदुर्ग", en: "Sindhudurg" },
+  { code: "thane",       region: "konkan",     mr: "ठाणे",    hi: "ठाणे",    en: "Thane" },
+];
+
+function getDistrictLabel(code, langCode) {
+  const d = DISTRICTS.find(x => x.code === code);
+  if (!d) return code || "";
+  const key = langCode === "en-US" ? "en" : langCode === "hi-IN" ? "hi" : "mr";
+  return d[key] || d.mr;
+}
+
 // SCREEN 1: Language Picker
 function LanguageScreen({ onSelect }) {
   const [selected, setSelected] = useState("mr-IN");
@@ -401,7 +441,7 @@ function LanguageScreen({ onSelect }) {
 }
 
 // SCREEN 2: Profile Form
-function ProfileModal({ onSave, ui }) {
+function ProfileModal({ onSave, ui, langCode }) {
   const [form, setForm] = useState({
     name: "", district: "", taluka: "", landAcres: "",
     soilType: "", irrigationType: "", currentCrop: "", goal: ""
@@ -449,39 +489,24 @@ function ProfileModal({ onSave, ui }) {
           <select style={inputStyle} value={form.district} onChange={e => update("district", e.target.value)}>
             <option value="">{p.districtPh}</option>
             <optgroup label={p.marathwada}>
-              <option>औरंगाबाद (छत्रपती संभाजीनगर)</option>
-              <option>बीड</option>
-              <option>नांदेड</option>
-              <option>लातूर</option>
-              <option>उस्मानाबाद (धाराशिव)</option>
-              <option>परभणी</option>
-              <option>हिंगोली</option>
-              <option>जालना</option>
+              {DISTRICTS.filter(d => d.region === "marathwada").map(d => (
+                <option key={d.code} value={d.code}>{getDistrictLabel(d.code, langCode)}</option>
+              ))}
             </optgroup>
             <optgroup label={p.vidarbha}>
-              <option>नागपूर</option>
-              <option>अमरावती</option>
-              <option>अकोला</option>
-              <option>यवतमाळ</option>
-              <option>वर्धा</option>
-              <option>बुलढाणा</option>
-              <option>वाशीम</option>
+              {DISTRICTS.filter(d => d.region === "vidarbha").map(d => (
+                <option key={d.code} value={d.code}>{getDistrictLabel(d.code, langCode)}</option>
+              ))}
             </optgroup>
             <optgroup label={p.westMH}>
-              <option>पुणे</option>
-              <option>नाशिक</option>
-              <option>सोलापूर</option>
-              <option>सातारा</option>
-              <option>सांगली</option>
-              <option>कोल्हापूर</option>
-              <option>अहमदनगर</option>
+              {DISTRICTS.filter(d => d.region === "westMH").map(d => (
+                <option key={d.code} value={d.code}>{getDistrictLabel(d.code, langCode)}</option>
+              ))}
             </optgroup>
             <optgroup label={p.konkan}>
-              <option>मुंबई</option>
-              <option>रत्नागिरी</option>
-              <option>रायगड</option>
-              <option>सिंधुदुर्ग</option>
-              <option>ठाणे</option>
+              {DISTRICTS.filter(d => d.region === "konkan").map(d => (
+                <option key={d.code} value={d.code}>{getDistrictLabel(d.code, langCode)}</option>
+              ))}
             </optgroup>
           </select>
         </div>
@@ -652,7 +677,9 @@ export default function App() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: msgText, history: chat,
-          farmerProfile: farmerProfile || {},
+          farmerProfile: farmerProfile
+            ? { ...farmerProfile, district: farmerProfile.district ? getDistrictLabel(farmerProfile.district, language?.code || "mr-IN") : "" }
+            : {},
           language: language?.code || "mr-IN"
         }),
         signal: controller.signal
@@ -693,7 +720,7 @@ export default function App() {
         fontSize: 11, background: "rgba(255,255,255,0.15)", borderRadius: 12,
         padding: "3px 8px", color: "rgba(255,255,255,0.9)",
         maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"
-      }}>📍 {farmerProfile.district}{farmerProfile.landAcres ? ` · ${farmerProfile.landAcres}ac` : ""}</div>
+      }}>📍 {getDistrictLabel(farmerProfile.district, language?.code || "mr-IN")}{farmerProfile.landAcres ? ` · ${farmerProfile.landAcres}ac` : ""}</div>
     );
   };
 
@@ -717,7 +744,7 @@ export default function App() {
             </button>
           </div>
         }>
-          <ProfileModal onSave={(p) => setFarmerProfile(p)} ui={ui} />
+          <ProfileModal onSave={(p) => setFarmerProfile(p)} ui={ui} langCode={language.code} />
         </ErrorBoundary>
       </div>
     );
@@ -774,7 +801,7 @@ export default function App() {
               <p style={{ color: "#666", fontSize: 14, margin: "0 0 6px" }}>{ui.subgreeting}</p>
               {farmerProfile?.district && (
                 <p style={{ color: "#2e7d32", fontSize: 13, margin: "0 0 4px", fontWeight: "500" }}>
-                  📍 {farmerProfile.district}
+                  📍 {getDistrictLabel(farmerProfile.district, language.code)}
                   {farmerProfile.irrigationType ? ` · ${farmerProfile.irrigationType}` : ""}
                   {farmerProfile.landAcres ? ` · ${farmerProfile.landAcres} ${language.code === "en-US" ? "acres" : "एकर"}` : ""}
                 </p>

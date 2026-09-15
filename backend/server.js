@@ -37,7 +37,7 @@ const chatLimiter = rateLimit({
   max: 20,                    // max 20 requests per IP per minute
   standardHeaders: true,
   legacyHeaders: false,
-  message: { reply: "खूप जास्त प्रश्न आले. एक मिनिट थांबा आणि पुन्हा विचारा." }
+  message: (req, res) => ({ reply: getErrorMsg(req.body?.language || "mr-IN", "tooManyRequests") })
 });
 
 let groq;
@@ -248,6 +248,48 @@ ${caveat}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// FIX 7: LANGUAGE-AWARE ERROR MESSAGES — previously all fallback replies were
+// hardcoded in Marathi regardless of which language the farmer selected.
+// ─────────────────────────────────────────────────────────────────────────────
+const ERROR_MESSAGES = {
+  "mr-IN": {
+    empty: "प्रश्न टाइप करा.",
+    tooLong: "प्रश्न जास्त मोठा आहे. थोडक्यात विचारा.",
+    injection: "हा प्रश्न समजला नाही. शेतीविषयक प्रश्न विचारा.",
+    serviceDown: "सेवा सध्या उपलब्ध नाही. थोड्या वेळाने पुन्हा प्रयत्न करा.",
+    authError: "API key चुकीची आहे. Admin ला सांगा.",
+    rateLimited: "आत्ता खूप जण वापरत आहेत. एक मिनिट थांबा.",
+    tooManyRequests: "खूप जास्त प्रश्न आले. एक मिनिट थांबा आणि पुन्हा विचारा.",
+    generic: "तांत्रिक अडचण आली. पुन्हा प्रयत्न करा."
+  },
+  "hi-IN": {
+    empty: "सवाल टाइप करें.",
+    tooLong: "सवाल बहुत बड़ा है। संक्षेप में पूछें.",
+    injection: "यह सवाल समझ नहीं आया। कृपया खेती से जुड़ा सवाल पूछें.",
+    serviceDown: "सेवा अभी उपलब्ध नहीं है। थोड़ी देर बाद कोशिश करें.",
+    authError: "API key गलत है। Admin को बताएं.",
+    rateLimited: "अभी बहुत लोग इस्तेमाल कर रहे हैं। एक मिनट रुकें.",
+    tooManyRequests: "बहुत सारे सवाल आए। एक मिनट रुकें और फिर पूछें.",
+    generic: "तकनीकी समस्या आई। फिर से कोशिश करें."
+  },
+  "en-US": {
+    empty: "Please type a question.",
+    tooLong: "Your question is too long. Please keep it short.",
+    injection: "This question wasn't understood. Please ask a farming-related question.",
+    serviceDown: "Service is currently unavailable. Please try again shortly.",
+    authError: "API key is invalid. Please contact admin.",
+    rateLimited: "Too many people are using this right now. Please wait a minute.",
+    tooManyRequests: "Too many questions came in. Please wait a minute and ask again.",
+    generic: "A technical issue occurred. Please try again."
+  }
+};
+
+function getErrorMsg(lang, key) {
+  const langMsgs = ERROR_MESSAGES[lang] || ERROR_MESSAGES["mr-IN"];
+  return langMsgs[key] || ERROR_MESSAGES["mr-IN"][key];
+}
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "Krushiverse backend working 🌾" });
 });
@@ -392,22 +434,22 @@ app.post("/api/chat", chatLimiter, async (req, res) => {
     const selectedLang = req.body?.language || "mr-IN";
 
     if (!rawMessage) {
-      return res.json({ reply: "प्रश्न टाइप करा." });
+      return res.json({ reply: getErrorMsg(selectedLang, "empty") });
     }
 
     // Basic message length guard
     if (rawMessage.length > 500) {
-      return res.json({ reply: "प्रश्न जास्त मोठा आहे. थोडक्यात विचारा." });
+      return res.json({ reply: getErrorMsg(selectedLang, "tooLong") });
     }
 
     // Prompt injection check — sanitizeInput returns null if attack detected
     const userMessage = sanitizeInput(rawMessage);
     if (userMessage === null) {
-      return res.json({ reply: "हा प्रश्न समजला नाही. शेतीविषयक प्रश्न विचारा." });
+      return res.json({ reply: getErrorMsg(selectedLang, "injection") });
     }
 
     if (!groq) {
-      return res.status(503).json({ reply: "सेवा सध्या उपलब्ध नाही. थोड्या वेळाने पुन्हा प्रयत्न करा." });
+      return res.status(503).json({ reply: getErrorMsg(selectedLang, "serviceDown") });
     }
 
     let farmerContext = "";
@@ -442,13 +484,15 @@ app.post("/api/chat", chatLimiter, async (req, res) => {
 
   } catch (err) {
     console.error("CHAT ERROR:", err.message);
+    // selectedLang may not have been set yet if the crash happened before that line ran
+    const lang = req.body?.language || "mr-IN";
     if (err.status === 401) {
-      return res.status(500).json({ reply: "API key चुकीची आहे. Admin ला सांगा." });
+      return res.status(500).json({ reply: getErrorMsg(lang, "authError") });
     }
     if (err.status === 429) {
-      return res.status(429).json({ reply: "आत्ता खूप जण वापरत आहेत. एक मिनिट थांबा." });
+      return res.status(429).json({ reply: getErrorMsg(lang, "rateLimited") });
     }
-    return res.status(500).json({ reply: "तांत्रिक अडचण आली. पुन्हा प्रयत्न करा." });
+    return res.status(500).json({ reply: getErrorMsg(lang, "generic") });
   }
 });
 
