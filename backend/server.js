@@ -394,7 +394,7 @@ app.post("/api/chat", chatLimiter, async (req, res) => {
     const systemPrompt = buildSystemPrompt(profile, selectedLang, farmerContext);
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       temperature: 0.3,
       max_tokens: 350,
       messages: [
